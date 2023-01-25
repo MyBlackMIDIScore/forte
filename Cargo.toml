@@ -1,0 +1,13 @@
+[package]
+name = "forte"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+egui = "0.20.0"
+eframe = { version = "0.20.0", features = ["persistence"] }
+midi-toolkit-rs = { git = "https://github.com/arduano/midi-toolkit-rs", rev = "907dec1" }
+serde = "1.0.147"
+xsynth-core = { git = "https://github.com/arduano/xsynth.git" }
+egui_extras = "0.20.0"
+egui_file = "0.5.4"
