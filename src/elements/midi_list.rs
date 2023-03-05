@@ -21,11 +21,15 @@ pub struct ForteListItem {
 
 pub struct EguiMIDIList {
     list: Vec<ForteListItem>,
+    progress: Option<Vec<Option<f32>>>,
 }
 
 impl EguiMIDIList {
     pub fn new() -> Self {
-        Self { list: Vec::new() }
+        Self {
+            list: Vec::new(),
+            progress: None,
+        }
     }
 
     pub fn add_item(&mut self, path: PathBuf) -> Result<(), FileLoadError> {
@@ -121,6 +125,45 @@ impl EguiMIDIList {
         self.list.clear();
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.list.is_empty()
+    }
+
+    pub fn iter_list(&self) -> std::vec::IntoIter<ForteListItem> {
+        self.list.clone().into_iter()
+    }
+
+    pub fn set_progress(&mut self, progress: Option<Vec<Option<f64>>>) {
+        self.progress = match progress {
+            Some(progress) => {
+                let mut out = Vec::new();
+                for (i, p) in progress.iter().enumerate() {
+                    match p {
+                        Some(p) => out.push(Some((p / self.list[i].length) as f32)),
+                        None => out.push(None),
+                    }
+                }
+                Some(out)
+            }
+            None => None,
+        };
+    }
+
+    pub fn get_total_progress(&self) -> f32 {
+        if let Some(progress) = &self.progress {
+            let mut out = 0.0;
+            let len = progress.len();
+            for p in progress {
+                if let Some(p) = p {
+                    out += p;
+                }
+            }
+            out / (len as f32)
+        } else {
+            0.0
+        }
+    }
+
     pub fn show(&mut self, ui: &mut Ui) {
         ScrollArea::both().show(ui, |ui| {
             let events = ui.input().events.clone();
@@ -170,20 +213,43 @@ impl EguiMIDIList {
                 })
                 .body(|mut body| {
                     let row_height = 24.0;
-                    for item in self.list.iter_mut() {
+                    for (idx, item) in self.list.iter_mut().enumerate() {
                         body.row(row_height, |mut row| {
                             row.col(|ui| {
-                                let selectable = if let Some(filename) = item.path.file_name() {
+                                let txt = if let Some(filename) = item.path.file_name() {
                                     if let Some(txt) = filename.to_str() {
-                                        egui::SelectableLabel::new(item.selected, txt)
+                                        txt
                                     } else {
-                                        egui::SelectableLabel::new(item.selected, "error")
+                                        "error"
                                     }
                                 } else {
-                                    egui::SelectableLabel::new(item.selected, "error")
+                                    "error"
                                 };
-                                if ui.add(selectable).clicked() {
-                                    item.selected = !item.selected;
+
+                                let mut gen_selectable = || {
+                                    let selectable = egui::SelectableLabel::new(item.selected, txt);
+                                    if ui.add(selectable).clicked() {
+                                        item.selected = !item.selected;
+                                    }
+                                };
+
+                                if let Some(progress) = &self.progress {
+                                    if let Some(progress) = progress.get(idx) {
+                                        if let Some(progress) = progress {
+                                            ui.horizontal(|ui| {
+                                                ui.add(
+                                                    egui::widgets::ProgressBar::new(*progress)
+                                                        .text(txt),
+                                                );
+                                            });
+                                        } else {
+                                            gen_selectable();
+                                        }
+                                    } else {
+                                        gen_selectable();
+                                    }
+                                } else {
+                                    gen_selectable();
                                 }
                             });
                             row.col(|ui| {

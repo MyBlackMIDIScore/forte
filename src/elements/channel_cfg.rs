@@ -1,6 +1,6 @@
+use crate::settings::SingleChannelSettings;
 use egui::Ui;
 use xsynth_core::channel::ChannelInitOptions;
-use crate::settings::SingleChannelSettings;
 
 pub struct EguiChannelConfig {
     limit_layers: bool,
@@ -15,7 +15,7 @@ impl EguiChannelConfig {
         Self {
             limit_layers: true,
             layer_count: 10,
-            init: Default::default(),
+            init: SingleChannelSettings::default().channel_init_options,
             use_threadpool: false,
             volume: 1.0,
         }
@@ -39,12 +39,17 @@ impl EguiChannelConfig {
             .spacing([40.0, 4.0])
             .min_col_width(140.0)
             .show(ui, |ui| {
-                ui.label("Volume: ");
+                /*ui.label("Volume: ");
                 ui.add(egui::Slider::new(&mut self.volume, 0.0..=1.0));
-                ui.end_row();
+                ui.end_row();*/
 
                 ui.label("Use threadpool: ");
-                ui.checkbox(&mut self.use_threadpool, "");
+                ui.horizontal(|ui| {
+                    ui.checkbox(&mut self.use_threadpool, "");
+                    ui.label("\u{2139}").on_hover_text(
+                        "Enabling this will spawn one thread per key (per channel).",
+                    );
+                });
                 ui.end_row();
 
                 ui.label("Fade out voice when killing it: ");
@@ -55,7 +60,6 @@ impl EguiChannelConfig {
 
         ui.heading("Layer Limit");
         ui.separator();
-        ui.label("In a channel, 1 layer is 1 voice per key.");
         egui::Grid::new("layerlimit_synth_settings_grid")
             .num_columns(2)
             .spacing([40.0, 4.0])
@@ -67,11 +71,15 @@ impl EguiChannelConfig {
 
                 ui.label("Synth Layer Count: ");
                 ui.add_enabled_ui(self.limit_layers, |ui| {
-                    ui.add(
-                        egui::DragValue::new(&mut self.layer_count)
-                            .speed(1)
-                            .clamp_range(1..=100000),
-                    );
+                    ui.horizontal(|ui| {
+                        ui.add(
+                            egui::DragValue::new(&mut self.layer_count)
+                                .speed(1)
+                                .clamp_range(1..=100000),
+                        );
+                        ui.label("\u{2139}")
+                            .on_hover_text("In a channel, 1 layer is 1 voice per key.");
+                    });
                 });
                 ui.end_row();
             });

@@ -142,6 +142,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8da52d66c7071e2e3fa2a1e5c6d088fec47b593032b254f5e980de8ea54454d6"
 
 [[package]]
+name = "atomic"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b88d82667eca772c4aa12f0f1348b3ae643424c8876448f3f7bd5787032e234c"
+dependencies = [
+ "autocfg",
+]
+
+[[package]]
+name = "atomic_float"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "62af46d040ba9df09edc6528dae9d8e49f5f3e82f55b7d2ec31a733c38dbc49d"
+
+[[package]]
 name = "atomic_refcell"
 version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -842,15 +857,20 @@ dependencies = [
 name = "forte"
 version = "0.1.0"
 dependencies = [
+ "atomic",
+ "atomic_float",
  "crossbeam-channel",
  "eframe",
  "egui",
  "egui_extras",
  "egui_file",
+ "hound",
  "midi-toolkit-rs",
  "num-format",
  "proc-macro2",
  "rand",
+ "rayon",
+ "regex",
  "serde",
  "xsynth-core",
  "xsynth-soundfonts",
@@ -988,6 +1008,12 @@ checksum = "ee512640fe35acbfb4bb779db6f0d80704c2cacfa2e39b601ef3e3f47d1ae4c7"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "hound"
+version = "3.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d13cdbd5dbb29f9c88095bbdc2590c9cba0d0a1269b983fef6b2cdd7e9f4db1"
 
 [[package]]
 name = "ident_case"
@@ -1667,13 +1693,35 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.7.0"
+version = "1.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e076559ef8e241f2ae3479e36f97bd5741c0330689e217ad51ce2c76808b868a"
+checksum = "48aaa5748ba571fb95cd2c85c09f629215d3a6ece942baa100950af03a34f733"
 dependencies = [
  "aho-corasick",
  "memchr",
  "regex-syntax",
+]
+
+[[package]]
+name = "regex-bnf"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ccd8d4222c7fe394fb5ae81c08515107316596c8d4594f1a0d636919350c7eff"
+dependencies = [
+ "regex",
+ "regex-bnf-macro",
+ "thiserror",
+]
+
+[[package]]
+name = "regex-bnf-macro"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6615139e01fc5b243a0012221c4a11562090de91c200140913bff9e2ba2650dc"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -1826,16 +1874,6 @@ checksum = "0a345c870a1fae0b1b779085e81b51e614767c239e93503588e54c5b17f4b0e8"
 dependencies = [
  "smithay-client-toolkit",
  "wayland-client",
-]
-
-[[package]]
-name = "soundfonts_macro"
-version = "0.1.0"
-source = "git+https://github.com/arduano/xsynth?rev=c568321#c5683217fae9c79808ed61dc12c515b2070cf7d8"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -2608,7 +2646,7 @@ checksum = "d2d7d3948613f75c98fd9328cfdcc45acc4d360655289d0a7d4ec931392200a3"
 [[package]]
 name = "xsynth-core"
 version = "0.1.0"
-source = "git+https://github.com/arduano/xsynth?rev=c568321#c5683217fae9c79808ed61dc12c515b2070cf7d8"
+source = "git+https://github.com/arduano/xsynth?rev=2ef486b#2ef486b7626c9340e2025ac3dc8bca765c4f283d"
 dependencies = [
  "atomic_refcell",
  "biquad",
@@ -2627,10 +2665,10 @@ dependencies = [
 [[package]]
 name = "xsynth-soundfonts"
 version = "0.1.0"
-source = "git+https://github.com/arduano/xsynth?rev=c568321#c5683217fae9c79808ed61dc12c515b2070cf7d8"
+source = "git+https://github.com/arduano/xsynth?rev=2ef486b#2ef486b7626c9340e2025ac3dc8bca765c4f283d"
 dependencies = [
  "lazy-regex",
+ "regex-bnf",
  "simdeez 1.0.8 (git+https://github.com/arduano/simdeez.git?rev=86f8bf9)",
- "soundfonts_macro",
  "thiserror",
 ]

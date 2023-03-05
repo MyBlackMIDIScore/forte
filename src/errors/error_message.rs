@@ -1,6 +1,7 @@
 use egui::{Context, Window};
 use rand;
 
+#[derive(Clone)]
 pub struct ErrorMessage {
     id: usize,
     title: String,

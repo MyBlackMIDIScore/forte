@@ -31,10 +31,12 @@ impl SoundfontConfigWindow {
 
                 ui.heading("Instrument");
                 ui.separator();
+                ui.label("XSynth currently doesn't support instrument settings.");
                 egui::Grid::new("sfconfig_window_instr")
                     .num_columns(2)
                     .min_col_width(col_width)
                     .show(ui, |ui| {
+                        ui.set_enabled(false);
                         ui.label("Bank: ");
                         ui.add(
                             egui::DragValue::new(&mut item.pref.bank)

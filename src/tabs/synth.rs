@@ -63,7 +63,7 @@ impl ForteSynthTab {
         ctx: &Context,
         errors_callback: E,
     ) where
-        E: FnMut(String, String),
+        E: FnOnce(String, String),
     {
         ui.horizontal(|ui| {
             ui.heading("Synthesizer Configuration");
@@ -93,11 +93,7 @@ impl ForteSynthTab {
         match self.current_panel {
             Panel::Soundfonts => {
                 ui.horizontal(|ui| {
-                    ui.selectable_value(
-                        &mut self.sf_load_type,
-                        SynthCfgType::Global,
-                        "Global",
-                    );
+                    ui.selectable_value(&mut self.sf_load_type, SynthCfgType::Global, "Global");
                     ui.selectable_value(
                         &mut self.sf_load_type,
                         SynthCfgType::PerChannel,
@@ -141,11 +137,7 @@ impl ForteSynthTab {
             }
             Panel::Settings => {
                 ui.horizontal(|ui| {
-                    ui.selectable_value(
-                        &mut self.channel_cfg_type,
-                        SynthCfgType::Global,
-                        "Global",
-                    );
+                    ui.selectable_value(&mut self.channel_cfg_type, SynthCfgType::Global, "Global");
                     ui.selectable_value(
                         &mut self.channel_cfg_type,
                         SynthCfgType::PerChannel,
@@ -188,18 +180,19 @@ impl ForteSynthTab {
         }
     }
 
-    fn apply_to_state(&self, state: &mut ForteState) {
+    pub fn apply_to_state(&self, state: &mut ForteState) {
         match self.sf_load_type {
             SynthCfgType::Global => {
                 for channel in state.synth_settings.channel_settings.iter_mut() {
                     channel.soundfonts = self.sf_global_list.iter_list().collect();
                 }
-            },
+            }
             SynthCfgType::PerChannel => {
                 for (idx, list) in self.sf_split_lists.iter().enumerate() {
-                    state.synth_settings.channel_settings[idx].soundfonts = list.iter_list().collect();
+                    state.synth_settings.channel_settings[idx].soundfonts =
+                        list.iter_list().collect();
                 }
-            },
+            }
         }
 
         match self.channel_cfg_type {
@@ -207,12 +200,12 @@ impl ForteSynthTab {
                 for channel in state.synth_settings.channel_settings.iter_mut() {
                     self.channel_cfg_global.save_to_state_settings(channel);
                 }
-            },
+            }
             SynthCfgType::PerChannel => {
                 for (idx, list) in self.channel_cfgs.iter().enumerate() {
                     list.save_to_state_settings(&mut state.synth_settings.channel_settings[idx]);
                 }
-            },
+            }
         }
     }
 }

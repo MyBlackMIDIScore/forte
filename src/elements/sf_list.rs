@@ -117,9 +117,9 @@ impl EguiSFList {
         self.list.clone().into_iter()
     }
 
-    pub fn show<E>(&mut self, ui: &mut Ui, ctx: &Context, mut errors_callback: E)
+    pub fn show<E>(&mut self, ui: &mut Ui, ctx: &Context, errors_callback: E)
     where
-        E: FnMut(String, String),
+        E: FnOnce(String, String),
     {
         let events = ui.input().events.clone();
         for event in &events {

@@ -12,7 +12,7 @@ pub fn f64_to_time_str(time: f64) -> String {
     let secs = time as u64 % 60;
     let mins = time as u64 / 60;
 
-    format!("{}:{}.{}", mins, secs, millis)
+    format!("{:0width$}:{:0width$}.{}", mins, secs, millis, width = 2)
 }
 
 pub fn bytes_to_filesize_str(size: u64) -> String {
