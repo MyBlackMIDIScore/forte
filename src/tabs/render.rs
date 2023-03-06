@@ -179,7 +179,7 @@ impl ForteRenderTab {
 
                         strip.cell(|ui| {
                             let rect = ui.available_rect_before_wrap();
-                            ui.heading("Render");
+                            ui.heading("Actions");
 
                             ui.horizontal(|ui| {
                                 if ui.add(egui::Button::new("Render Settings").min_size(egui::Vec2::new(rect.width() / 4.0 - 5.0, 40.0))).clicked() {
@@ -194,7 +194,7 @@ impl ForteRenderTab {
                                         }
                                     }
                                 } else {
-                                    if ui.add(egui::Button::new("Render!").min_size(egui::Vec2::new(3.0 * rect.width() / 4.0 - 5.0, 40.0))).clicked() && !self.midi_list.is_empty() {
+                                    if ui.add(egui::Button::new("Convert!").min_size(egui::Vec2::new(3.0 * rect.width() / 4.0 - 5.0, 40.0))).clicked() && !self.midi_list.is_empty() {
                                         let mut dialog = FileDialog::select_folder(None)
                                             .resizable(true)
                                             .show_new_folder(false)

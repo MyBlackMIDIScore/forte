@@ -29,6 +29,7 @@ use xsynth_core::channel::{ChannelAudioEvent, ChannelConfigEvent, ControlEvent};
 use xsynth_core::effects::VolumeLimiter;
 use xsynth_core::soundfont::{SampleSoundfont, SoundfontBase};
 use xsynth_core::AudioStreamParams;
+use std::ops::RangeInclusive;
 
 #[derive(Clone)]
 struct RenderStatsAtomic {
@@ -55,6 +56,7 @@ struct MIDIRenderer {
 
     limiter: Option<VolumeLimiter>,
     audio_params: AudioStreamParams,
+    ignore_range: RangeInclusive<u8>,
 
     output_vec: Vec<f32>,
     missed_samples: f64,
@@ -171,10 +173,11 @@ impl MIDIRenderer {
                 None
             },
             audio_params,
+            ignore_range: state.render_settings.vel_ignore_range.clone(),
 
             output_vec: Vec::new(),
             missed_samples: 0.0,
-           time: 0.0,
+            time: 0.0,
         })
     }
 
@@ -284,13 +287,15 @@ impl MIDIRenderer {
             for event in batch.iter_inner() {
                 match event {
                     Event::NoteOn(e) => {
-                        self.renderer.send_event(SynthEvent::Channel(
-                            e.channel as u32,
-                            ChannelAudioEvent::NoteOn {
-                                key: e.key,
-                                vel: e.velocity,
-                            },
-                        ));
+                        if !self.ignore_range.contains(&e.velocity) {
+                            self.renderer.send_event(SynthEvent::Channel(
+                                e.channel as u32,
+                                ChannelAudioEvent::NoteOn {
+                                    key: e.key,
+                                    vel: e.velocity,
+                                },
+                            ));
+                        }
                     }
                     Event::NoteOff(e) => {
                         self.renderer.send_event(SynthEvent::Channel(
