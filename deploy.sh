@@ -16,6 +16,5 @@ cargo build -r --target x86_64-pc-windows-gnu
 
 # Copy and rename files
 mkdir bin
-rm -r bin/*
 cp target/x86_64-unknown-linux-gnu/release/forte bin/forte-b$build-linux-x86_64
 cp target/x86_64-pc-windows-gnu/release/forte.exe bin/forte-b$build-windows-x86_64.exe

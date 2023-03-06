@@ -1,5 +1,6 @@
 use crate::utils::set_button_spacing;
 use egui::Ui;
+use crate::app::add_gui_error;
 
 pub fn show_about(ui: &mut Ui) {
     ui.heading("Forte v0.1.0");
@@ -38,7 +39,7 @@ pub fn show_about(ui: &mut Ui) {
 
     set_button_spacing(ui);
     ui.horizontal(|ui| {
-        if ui.button("\u{1F5A5} Check for updates").clicked() {}
+        if ui.button("\u{1F5A5} Check for updates").clicked() {add_gui_error("No Updates Found".to_owned(), "Forte is all up to date!".to_owned())}
         if ui.button("\u{1F310} GitHub").clicked() {}
     });
 }

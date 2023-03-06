@@ -61,7 +61,6 @@ impl ForteSynthTab {
         ui: &mut Ui,
         state: &mut ForteState,
         ctx: &Context,
-        errors_callback: impl FnOnce(String, String) + Clone,
     )
     {
         ui.horizontal(|ui| {
@@ -111,7 +110,7 @@ impl ForteSynthTab {
                 match self.sf_load_type {
                     SynthCfgType::Global => {
                         render_in_frame(ui, |ui| {
-                            self.sf_global_list.show(ui, ctx, errors_callback);
+                            self.sf_global_list.show(ui, ctx);
                         });
                     }
                     SynthCfgType::PerChannel => {
@@ -119,7 +118,6 @@ impl ForteSynthTab {
                             self.sf_split_lists[self.sf_split_selected].show(
                                 ui,
                                 ctx,
-                                errors_callback,
                             );
                         });
                     }

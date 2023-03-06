@@ -5,6 +5,7 @@ use crate::elements::{midi_list::EguiMIDIList, render_settings::show_render_sett
 use crate::settings::ForteState;
 use crate::utils::render_in_frame;
 use crate::xsynth::{ManagerStatus, RenderThreadManager};
+use crate::app::add_gui_error;
 
 use egui_file::FileDialog;
 use std::path::Path;
@@ -31,7 +32,6 @@ impl ForteRenderTab {
         ui: &mut Ui,
         state: &mut ForteState,
         ctx: &Context,
-        errors_callback: impl FnOnce(String, String) + Clone,
     )
     {
         let mut ended = true;
@@ -56,7 +56,7 @@ impl ForteRenderTab {
                 } else if status == ManagerStatus::SFLoadError {
                     state.ui_state.rendering = false;
                     mgr.cancel();
-                    (errors_callback).clone()(
+                    add_gui_error(
                         "Soundfont Loader Error".to_owned(),
                         "Invalid Soundfont Chain".to_owned(),
                     );
@@ -159,7 +159,7 @@ impl ForteRenderTab {
                                                 } else {
                                                     "There was an error adding the selected MIDI to the list.".to_string()
                                                 };
-                                                errors_callback(title, error.to_string());
+                                                add_gui_error(title, error.to_string());
                                             }
                                         } else if path.is_dir() {
                                             if let Err(error) = self.midi_list.add_folder(path.clone()) {
@@ -169,7 +169,7 @@ impl ForteRenderTab {
                                                 } else {
                                                     "There was an error adding the selected folder to the list.".to_string()
                                                 };
-                                                errors_callback(title, error.to_string());
+                                                add_gui_error(title, error.to_string());
                                             }
                                         }
                                     }
@@ -194,7 +194,7 @@ impl ForteRenderTab {
                                         }
                                     }
                                 } else {
-                                    if ui.add(egui::Button::new("Convert!").min_size(egui::Vec2::new(3.0 * rect.width() / 4.0 - 5.0, 40.0))).clicked() && !self.midi_list.is_empty() {
+                                    if ui.add_enabled(!self.midi_list.is_empty(), egui::Button::new("Convert!").min_size(egui::Vec2::new(3.0 * rect.width() / 4.0 - 5.0, 40.0))).clicked() {
                                         let mut dialog = FileDialog::select_folder(None)
                                             .resizable(true)
                                             .show_new_folder(false)
@@ -215,12 +215,12 @@ impl ForteRenderTab {
 
                                                     match RenderThreadManager::new(state, midis) {
                                                         Ok(m) => self.render_manager = Some(m),
-                                                        Err(..) => {
+                                                        Err(err) => {
                                                             state.ui_state.rendering = false;
-                                                            /*(errors_callback).clone()(
+                                                            add_gui_error(
                                                                 "Renderer Error".to_owned(),
                                                                 err.to_string(),
-                                                            );*/
+                                                            );
                                                         }
                                                     }
                                                 }

@@ -2,12 +2,12 @@ use crate::errors::error_message::ErrorMessage;
 use crate::settings::ForteState;
 use crate::tabs::{show_about, ForteRenderTab, ForteSynthTab, ForteTab};
 use crate::utils::set_button_spacing;
-use std::cell::RefCell;
 use std::time::Duration;
+
+static mut GUI_ERRORS: Vec<ErrorMessage> = Vec::new();
 
 pub struct ForteApp {
     state: ForteState,
-    errors: RefCell<Vec<ErrorMessage>>,
 
     render_tab: ForteRenderTab,
     synth_tab: ForteSynthTab,
@@ -17,7 +17,6 @@ impl Default for ForteApp {
     fn default() -> Self {
         Self {
             state: Default::default(),
-            errors: RefCell::new(Vec::new()),
 
             render_tab: ForteRenderTab::new(),
             synth_tab: ForteSynthTab::new(),
@@ -35,16 +34,12 @@ impl eframe::App for ForteApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ctx.request_repaint_after(Duration::from_millis(20));
 
-        self.errors.borrow_mut().retain(|er| er.is_visible());
-        for error in self.errors.borrow_mut().iter_mut() {
-            error.show(ctx)
+        unsafe {
+            GUI_ERRORS.retain(|er| er.is_visible());
+            for error in GUI_ERRORS.iter_mut() {
+                error.show(ctx)
+            }
         }
-
-        let add_error = |title: String, error: String| {
-            self.errors
-                .borrow_mut()
-                .push(ErrorMessage::new(title, error));
-        };
 
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             set_button_spacing(ui);
@@ -79,17 +74,19 @@ impl eframe::App for ForteApp {
             ui.add_space(1.0);
         });
 
-        /*let apply_synth_settings = |state: &mut ForteState| {
-            self.synth_tab.apply_to_state(state);
-        };*/
-
         egui::CentralPanel::default().show(ctx, |ui| {
             set_button_spacing(ui);
             match &self.state.ui_state.tab {
-                ForteTab::Render => self.render_tab.show(ui, &mut self.state, ctx, add_error),
-                ForteTab::Synth => self.synth_tab.show(ui, &mut self.state, ctx, add_error),
+                ForteTab::Render => self.render_tab.show(ui, &mut self.state, ctx),
+                ForteTab::Synth => self.synth_tab.show(ui, &mut self.state, ctx),
                 ForteTab::About => show_about(ui),
             }
         });
+    }
+}
+
+pub fn add_gui_error(title: String, body: String) {
+    unsafe {
+        GUI_ERRORS.push(ErrorMessage::new(title, body));
     }
 }

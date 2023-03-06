@@ -7,6 +7,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use xsynth_core::soundfont::SoundfontInitOptions;
 use xsynth_soundfonts::sfz::parse::parse_tokens_resolved;
+use crate::app::add_gui_error;
 
 #[derive(Clone, PartialEq)]
 pub enum SFFormat {
@@ -117,9 +118,7 @@ impl EguiSFList {
         self.list.clone().into_iter()
     }
 
-    pub fn show<E>(&mut self, ui: &mut Ui, ctx: &Context, errors_callback: E)
-    where
-        E: FnOnce(String, String),
+    pub fn show(&mut self, ui: &mut Ui, ctx: &Context)
     {
         let events = ui.input().events.clone();
         for event in &events {
@@ -204,7 +203,7 @@ impl EguiSFList {
                                     } else {
                                         "There was an error adding the selected soundfont to the list.".to_string()
                                     };
-                                    errors_callback(title, error.to_string());
+                                    add_gui_error(title, error.to_string());
                                 }
                             }
                         }
