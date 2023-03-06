@@ -1,5 +1,6 @@
 use crate::errors::error_types::FileLoadError;
 use crate::utils::{bytes_to_filesize_str, f64_to_time_str};
+use crate::xsynth::RenderStats;
 use egui::{containers::scroll_area::ScrollArea, Ui};
 use egui_extras::{Column, TableBuilder};
 use midi_toolkit::{
@@ -21,14 +22,14 @@ pub struct ForteListItem {
 
 pub struct EguiMIDIList {
     list: Vec<ForteListItem>,
-    progress: Option<Vec<Option<f32>>>,
+    stats: Option<Vec<Option<RenderStats>>>,
 }
 
 impl EguiMIDIList {
     pub fn new() -> Self {
         Self {
             list: Vec::new(),
-            progress: None,
+            stats: None,
         }
     }
 
@@ -133,35 +134,32 @@ impl EguiMIDIList {
         self.list.clone().into_iter()
     }
 
-    pub fn set_progress(&mut self, progress: Option<Vec<Option<f64>>>) {
-        self.progress = match progress {
-            Some(progress) => {
-                let mut out = Vec::new();
-                for (i, p) in progress.iter().enumerate() {
-                    match p {
-                        Some(p) => out.push(Some((p / self.list[i].length) as f32)),
-                        None => out.push(None),
-                    }
-                }
-                Some(out)
-            }
-            None => None,
-        };
+    pub fn set_stats(&mut self, progress: Option<Vec<Option<RenderStats>>>) {
+        self.stats = progress;
     }
 
     pub fn get_total_progress(&self) -> f32 {
-        if let Some(progress) = &self.progress {
-            let mut out = 0.0;
-            let len = progress.len();
-            for p in progress {
-                if let Some(p) = p {
-                    out += p;
+        let mut vec = Vec::new();
+
+        match &self.stats {
+            Some(progress) => {
+                for (i, p) in progress.iter().enumerate() {
+                    match p {
+                        Some(p) => vec.push((p.time / self.list[i].length) as f32),
+                        None => vec.push(0.0),
+                    }
                 }
             }
-            out / (len as f32)
-        } else {
-            0.0
+            None => {},
+        };
+
+        let mut out = 0.0;
+        let len = vec.len();
+        for p in vec {
+            out += p;
         }
+
+        out / (len as f32)
     }
 
     pub fn show(&mut self, ui: &mut Ui) {
@@ -233,14 +231,14 @@ impl EguiMIDIList {
                                     }
                                 };
 
-                                if let Some(progress) = &self.progress {
-                                    if let Some(progress) = progress.get(idx) {
-                                        if let Some(progress) = progress {
+                                if let Some(stats) = &self.stats {
+                                    if let Some(stats) = stats.get(idx) {
+                                        if let Some(stats) = stats {
                                             ui.horizontal(|ui| {
                                                 ui.add(
-                                                    egui::widgets::ProgressBar::new(*progress)
+                                                    egui::widgets::ProgressBar::new((stats.time / item.length) as f32)
                                                         .text(txt),
-                                                );
+                                                ).on_hover_text(format!("Time: {} | Voice Count: {}", f64_to_time_str(stats.time), stats.voice_count));
                                             });
                                         } else {
                                             gen_selectable();

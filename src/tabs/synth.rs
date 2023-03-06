@@ -56,14 +56,13 @@ impl ForteSynthTab {
         }
     }
 
-    pub fn show<E>(
+    pub fn show(
         &mut self,
         ui: &mut Ui,
         state: &mut ForteState,
         ctx: &Context,
-        errors_callback: E,
-    ) where
-        E: FnOnce(String, String),
+        errors_callback: impl FnOnce(String, String) + Clone,
+    )
     {
         ui.horizontal(|ui| {
             ui.heading("Synthesizer Configuration");

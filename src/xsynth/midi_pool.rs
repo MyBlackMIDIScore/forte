@@ -1,8 +1,9 @@
 use crate::errors::error_types::MIDIRendererError;
 use crate::settings::{Concurrency, ForteState, RenderMode};
 use crate::writer::ForteAudioFileWriter;
-use crate::xsynth::renderers::{
-    ForteBufferedRenderer, ForteStandardRenderer, Renderer, SynthEvent,
+use crate::xsynth::{
+    renderers::{ForteBufferedRenderer, ForteStandardRenderer, Renderer, SynthEvent},
+    RenderStats,
 };
 use atomic::Atomic;
 use atomic_float::AtomicF64;
@@ -30,7 +31,7 @@ use xsynth_core::soundfont::{SampleSoundfont, SoundfontBase};
 use xsynth_core::AudioStreamParams;
 
 #[derive(Clone)]
-struct RenderStats {
+struct RenderStatsAtomic {
     time: Arc<AtomicF64>,
     voices: Arc<AtomicU64>,
 }
@@ -57,6 +58,7 @@ struct MIDIRenderer {
 
     output_vec: Vec<f32>,
     missed_samples: f64,
+    time: f64,
 }
 
 impl MIDIRenderer {
@@ -172,6 +174,7 @@ impl MIDIRenderer {
 
             output_vec: Vec::new(),
             missed_samples: 0.0,
+           time: 0.0,
         })
     }
 
@@ -206,16 +209,16 @@ impl MIDIRenderer {
         }
     }
 
-    fn render_batch(&mut self, event_time: f64) {
+    fn render_batch(&mut self, event_time: f64, update_stats: impl FnOnce(f64, u64) + Clone) {
         let max_batch_time = 0.01;
         if event_time > max_batch_time {
             let mut remaining_time = event_time;
             loop {
                 if remaining_time > max_batch_time {
-                    self.render_batch(max_batch_time);
+                    self.render_batch(max_batch_time, update_stats.clone());
                     remaining_time -= max_batch_time;
                 } else {
-                    self.render_batch(remaining_time);
+                    self.render_batch(remaining_time, update_stats);
                     break;
                 }
             }
@@ -226,6 +229,9 @@ impl MIDIRenderer {
 
             self.output_vec.resize(samples, 0.0);
             self.renderer.read_samples(&mut self.output_vec);
+
+            self.time += event_time;
+            (update_stats)(self.time, self.renderer.voice_count());
 
             if let Some(limiter) = &mut self.limiter {
                 limiter.limit(&mut self.output_vec);
@@ -260,24 +266,20 @@ impl MIDIRenderer {
             .store(MIDIRendererStatus::Finished, Ordering::Relaxed);
     }
 
-    pub fn run(&mut self, stats: Arc<RenderStats>) {
+    pub fn run(&mut self, stats: Arc<RenderStatsAtomic>) {
         let update_stats = |time: f64, voices: u64| {
             stats.time.store(time, Ordering::Relaxed);
             stats.voices.store(voices, Ordering::Relaxed);
         };
 
-        let mut time = 0.0;
         for batch in self.receiver.clone() {
             if !self.allow.load(Ordering::Relaxed) {
                 break;
             }
 
             if batch.delta > 0.0 {
-                self.render_batch(batch.delta);
-                time += batch.delta;
+                self.render_batch(batch.delta, update_stats);
             }
-
-            (update_stats)(time, self.renderer.voice_count());
 
             for event in batch.iter_inner() {
                 match event {
@@ -299,10 +301,7 @@ impl MIDIRenderer {
                     Event::ControlChange(e) => {
                         self.renderer.send_event(SynthEvent::Channel(
                             e.channel as u32,
-                            ChannelAudioEvent::Control(ControlEvent::Raw(
-                                e.controller,
-                                e.value,
-                            )),
+                            ChannelAudioEvent::Control(ControlEvent::Raw(e.controller, e.value)),
                         ));
                     }
                     Event::PitchWheelChange(e) => {
@@ -327,7 +326,7 @@ impl MIDIRenderer {
 
 struct MIDIRendererContainer {
     renderer: Option<Arc<RwLock<MIDIRenderer>>>,
-    stats: Arc<RenderStats>,
+    stats: Arc<RenderStatsAtomic>,
     status: Arc<Atomic<MIDIRendererStatus>>,
     allow: Arc<AtomicBool>,
 }
@@ -355,7 +354,7 @@ impl MIDIPool {
         for midi in midis {
             match MIDIRenderer::load_new(state, midi.clone(), soundfonts.clone()) {
                 Ok(r) => {
-                    let stats = Arc::new(RenderStats {
+                    let stats = Arc::new(RenderStatsAtomic {
                         time: Arc::new(AtomicF64::new(0.0)),
                         voices: Arc::new(AtomicU64::new(0)),
                     });
@@ -461,13 +460,16 @@ impl MIDIPool {
         }
     }
 
-    pub fn get_progress(&self) -> Vec<Option<f64>> {
+    pub fn get_stats(&self) -> Vec<Option<RenderStats>> {
         let mut progress = Vec::new();
 
         for container in &self.containers {
             let status = container.status.load(Ordering::Relaxed);
             if status != MIDIRendererStatus::Idle {
-                progress.push(Some(container.stats.time.load(Ordering::Relaxed)));
+                progress.push(Some(RenderStats {
+                    time: container.stats.time.load(Ordering::Relaxed),
+                    voice_count: container.stats.voices.load(Ordering::Relaxed),
+                }))
             } else {
                 progress.push(None);
             }

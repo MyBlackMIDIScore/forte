@@ -26,16 +26,13 @@ impl ForteRenderTab {
         }
     }
 
-    pub fn show<E>(
+    pub fn show(
         &mut self,
         ui: &mut Ui,
         state: &mut ForteState,
         ctx: &Context,
-        errors_callback: E,
-        //apply_synth_settings: A,
-    ) where
-        E: FnOnce(String, String) + Clone,
-        //A: FnOnce(&mut ForteState),
+        errors_callback: impl FnOnce(String, String) + Clone,
+    )
     {
         let mut ended = true;
         if state.ui_state.rendering {
@@ -86,12 +83,12 @@ impl ForteRenderTab {
             if mgr.has_finished() {
                 None
             } else {
-                Some(mgr.get_progress())
+                Some(mgr.get_stats())
             }
         } else {
             None
         };
-        self.midi_list.set_progress(progress);
+        self.midi_list.set_stats(progress);
 
         egui::TopBottomPanel::bottom("render_bottom_panel")
             .resizable(false)

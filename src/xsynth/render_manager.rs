@@ -17,6 +17,11 @@ pub enum ManagerStatus {
     RenderFinished,
 }
 
+pub struct RenderStats {
+    pub time: f64,
+    pub voice_count: u64,
+}
+
 pub struct RenderThreadManager {
     soundfont_pool: SoundfontPool,
     midi_pool: MIDIPool,
@@ -83,8 +88,8 @@ impl RenderThreadManager {
         self.midi_pool.spawn_next()
     }
 
-    pub fn get_progress(&self) -> Vec<Option<f64>> {
-        self.midi_pool.get_progress()
+    pub fn get_stats(&self) -> Vec<Option<RenderStats>> {
+        self.midi_pool.get_stats()
     }
 
     pub fn has_finished(&mut self) -> bool {
