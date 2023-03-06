@@ -22,7 +22,7 @@ impl Into<usize> for RenderMode {
 pub enum Concurrency {
     #[default]
     None,
-    ParallelItems,
+    ParallelMIDIs,
     ParallelTracks,
     Both,
 }
@@ -31,7 +31,7 @@ impl Into<usize> for Concurrency {
     fn into(self) -> usize {
         match self {
             Concurrency::None => 0,
-            Concurrency::ParallelItems => 1,
+            Concurrency::ParallelMIDIs => 1,
             Concurrency::ParallelTracks => 2,
             Concurrency::Both => 3,
         }

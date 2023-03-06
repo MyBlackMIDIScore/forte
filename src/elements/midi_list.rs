@@ -39,7 +39,7 @@ impl EguiMIDIList {
 
         if let Some(ext) = path.extension() {
             if ext == "mid" {
-                let file = MIDIFile::open_in_ram(path.clone(), None);
+                let file = MIDIFile::open(path.clone(), None);
                 match file {
                     Ok(midi) => {
                         let stats = pipe!(

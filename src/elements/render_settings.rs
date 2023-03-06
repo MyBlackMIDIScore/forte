@@ -30,7 +30,7 @@ pub fn show_render_settings(ui: &mut Ui, state: &mut ForteState) {
                 };
             }
 
-            let conc = ["None", "Items in parallel", "Tracks in parallel (N/A)"];//, "Both"];
+            let conc = ["None", "MIDIs in parallel", "Tracks in parallel (N/A)"];//, "Both"];
             let mut conc_state = state.render_settings.concurrency.into();
 
             ui.label("Concurrency:");
@@ -46,10 +46,10 @@ pub fn show_render_settings(ui: &mut Ui, state: &mut ForteState) {
 
             let is_parallel = match state.render_settings.concurrency {
                 Concurrency::None | Concurrency::ParallelTracks => false,
-                Concurrency::ParallelItems | Concurrency::Both => true,
+                Concurrency::ParallelMIDIs | Concurrency::Both => true,
             };
 
-            ui.label("Max Parallel Items:");
+            ui.label("Max Parallel MIDIs:");
             ui.add_enabled(
                 !state.ui_state.rendering && is_parallel,
                 egui::DragValue::new(&mut state.render_settings.parallel_midis)
@@ -61,7 +61,7 @@ pub fn show_render_settings(ui: &mut Ui, state: &mut ForteState) {
             if conc_state != state.render_settings.concurrency.into() {
                 match conc_state {
                     0 => state.render_settings.concurrency = Concurrency::None,
-                    1 => state.render_settings.concurrency = Concurrency::ParallelItems,
+                    1 => state.render_settings.concurrency = Concurrency::ParallelMIDIs,
                     2 => state.render_settings.concurrency = Concurrency::ParallelTracks,
                     3 => state.render_settings.concurrency = Concurrency::Both,
                     _ => state.render_settings.concurrency = Concurrency::None,

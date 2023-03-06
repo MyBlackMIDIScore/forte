@@ -52,7 +52,6 @@ struct MIDIRenderer {
     renderer: Box<dyn Renderer>,
     writer: Sender<f32>,
 
-    concurrency: Concurrency,
     limiter: Option<VolumeLimiter>,
     audio_params: AudioStreamParams,
 
@@ -164,7 +163,6 @@ impl MIDIRenderer {
             renderer,
             writer: writer_snd,
 
-            concurrency: state.render_settings.concurrency,
             limiter: if state.render_settings.use_limiter {
                 Some(VolumeLimiter::new(audio_params.channels.count()))
             } else {
@@ -209,7 +207,7 @@ impl MIDIRenderer {
     }
 
     fn render_batch(&mut self, event_time: f64) {
-        let max_batch_time = 10.0;
+        let max_batch_time = 0.01;
         if event_time > max_batch_time {
             let mut remaining_time = event_time;
             loop {
@@ -268,66 +266,62 @@ impl MIDIRenderer {
             stats.voices.store(voices, Ordering::Relaxed);
         };
 
-        match self.concurrency {
-            _ => {
-                let mut time = 0.0;
-                for batch in self.receiver.clone() {
-                    if !self.allow.load(Ordering::Relaxed) {
-                        break;
-                    }
+        let mut time = 0.0;
+        for batch in self.receiver.clone() {
+            if !self.allow.load(Ordering::Relaxed) {
+                break;
+            }
 
-                    if batch.delta > 0.0 {
-                        self.render_batch(batch.delta);
-                        time += batch.delta;
-                    }
+            if batch.delta > 0.0 {
+                self.render_batch(batch.delta);
+                time += batch.delta;
+            }
 
-                    (update_stats)(time, self.renderer.voice_count());
+            (update_stats)(time, self.renderer.voice_count());
 
-                    for event in batch.iter_inner() {
-                        match event {
-                            Event::NoteOn(e) => {
-                                self.renderer.send_event(SynthEvent::Channel(
-                                    e.channel as u32,
-                                    ChannelAudioEvent::NoteOn {
-                                        key: e.key,
-                                        vel: e.velocity,
-                                    },
-                                ));
-                            }
-                            Event::NoteOff(e) => {
-                                self.renderer.send_event(SynthEvent::Channel(
-                                    e.channel as u32,
-                                    ChannelAudioEvent::NoteOff { key: e.key },
-                                ));
-                            }
-                            Event::ControlChange(e) => {
-                                self.renderer.send_event(SynthEvent::Channel(
-                                    e.channel as u32,
-                                    ChannelAudioEvent::Control(ControlEvent::Raw(
-                                        e.controller,
-                                        e.value,
-                                    )),
-                                ));
-                            }
-                            Event::PitchWheelChange(e) => {
-                                self.renderer.send_event(SynthEvent::Channel(
-                                    e.channel as u32,
-                                    ChannelAudioEvent::Control(ControlEvent::PitchBendValue(
-                                        e.pitch as f32 / 8192.0,
-                                    )),
-                                ));
-                            }
-                            _ => {}
-                        }
+            for event in batch.iter_inner() {
+                match event {
+                    Event::NoteOn(e) => {
+                        self.renderer.send_event(SynthEvent::Channel(
+                            e.channel as u32,
+                            ChannelAudioEvent::NoteOn {
+                                key: e.key,
+                                vel: e.velocity,
+                            },
+                        ));
                     }
+                    Event::NoteOff(e) => {
+                        self.renderer.send_event(SynthEvent::Channel(
+                            e.channel as u32,
+                            ChannelAudioEvent::NoteOff { key: e.key },
+                        ));
+                    }
+                    Event::ControlChange(e) => {
+                        self.renderer.send_event(SynthEvent::Channel(
+                            e.channel as u32,
+                            ChannelAudioEvent::Control(ControlEvent::Raw(
+                                e.controller,
+                                e.value,
+                            )),
+                        ));
+                    }
+                    Event::PitchWheelChange(e) => {
+                        self.renderer.send_event(SynthEvent::Channel(
+                            e.channel as u32,
+                            ChannelAudioEvent::Control(ControlEvent::PitchBendValue(
+                                e.pitch as f32 / 8192.0,
+                            )),
+                        ));
+                    }
+                    _ => {}
                 }
-                self.renderer
-                    .send_event(SynthEvent::AllChannels(ChannelAudioEvent::AllNotesOff));
-                self.renderer
-                    .send_event(SynthEvent::AllChannels(ChannelAudioEvent::ResetControl));
-                self.finalize();
             }
         }
+        self.renderer
+            .send_event(SynthEvent::AllChannels(ChannelAudioEvent::AllNotesOff));
+        self.renderer
+            .send_event(SynthEvent::AllChannels(ChannelAudioEvent::ResetControl));
+        self.finalize();
     }
 }
 
@@ -384,7 +378,7 @@ impl MIDIPool {
 
         let max_parallel = match state.render_settings.concurrency {
             Concurrency::None | Concurrency::ParallelTracks => 1,
-            Concurrency::ParallelItems | Concurrency::Both => state.render_settings.parallel_midis,
+            Concurrency::ParallelMIDIs | Concurrency::Both => state.render_settings.parallel_midis,
         };
 
         Ok(Self {
