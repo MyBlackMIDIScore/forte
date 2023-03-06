@@ -17,8 +17,8 @@ pub fn show_about(ui: &mut Ui) {
             ui.end_row();
 
             ui.label("Build Number:");
-            let build_num: usize = include!("../../build.number");
-            ui.label(build_num.to_string());
+            let build_num = String::from_utf8_lossy(include_bytes!("../../build.number"));
+            ui.label(&build_num.trim()[6..]);
             ui.end_row();
 
             ui.label("XSynth Version:");

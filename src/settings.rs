@@ -95,7 +95,7 @@ impl Default for RenderSettings {
             render_mode: RenderMode::Standard,
             concurrency: Concurrency::None,
             vel_ignore_range: 0..=0,
-            realtime_buffer_ms: 10.0,
+            realtime_buffer_ms: 100.0 / 6.0,
             output_dir: None,
             parallel_midis: 2,
         }
