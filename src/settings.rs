@@ -44,7 +44,6 @@ pub struct SingleChannelSettings {
     pub layer_limit: Option<usize>,
     pub soundfonts: Vec<ForteSFListItem>,
     pub use_threadpool: bool,
-    pub volume: f32,
 }
 
 impl Default for SingleChannelSettings {
@@ -56,8 +55,7 @@ impl Default for SingleChannelSettings {
             channel_init_options,
             layer_limit: Some(10),
             soundfonts: Vec::new(),
-            use_threadpool: false,
-            volume: 1.0,
+            use_threadpool: true,
         }
     }
 }

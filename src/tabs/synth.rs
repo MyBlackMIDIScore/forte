@@ -80,15 +80,6 @@ impl ForteSynthTab {
         });
         ui.add_space(5.0);
 
-        egui::TopBottomPanel::bottom("soundfonts_bottom_panel")
-            .show_separator_line(false)
-            .show_inside(ui, |ui| {
-                ui.add_space(5.0);
-                if ui.button("Apply").clicked() {
-                    self.apply_to_state(state);
-                }
-            });
-
         match self.current_panel {
             Panel::Soundfonts => {
                 ui.horizontal(|ui| {
@@ -177,6 +168,9 @@ impl ForteSynthTab {
                 }
             }
         }
+
+        // Save the settings on every frame
+        self.apply_to_state(state);
     }
 
     pub fn apply_to_state(&self, state: &mut ForteState) {
