@@ -1,3 +1,4 @@
 /target
 build.number
 /bin
+forte.log.*

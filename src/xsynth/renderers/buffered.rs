@@ -10,6 +10,7 @@ use std::thread;
 use xsynth_core::channel::{ChannelEvent, VoiceChannel};
 use xsynth_core::helpers::{prepapre_cache_vec, sum_simd};
 use xsynth_core::{AudioPipe, AudioStreamParams, BufferedRenderer, FunctionAudioPipe};
+use tracing::info;
 
 pub struct ForteBufferedRenderer {
     buffered: BufferedRenderer,
@@ -20,6 +21,7 @@ pub struct ForteBufferedRenderer {
 
 impl ForteBufferedRenderer {
     pub fn new(state: &ForteState, instances: usize) -> Self {
+        info!("Creating new buffered renderer with {instances} instance(s)");
         let mut channel_stats = Vec::new();
         let mut senders = Vec::new();
         let mut command_senders = Vec::new();

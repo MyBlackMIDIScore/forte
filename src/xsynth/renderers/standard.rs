@@ -5,6 +5,7 @@ use std::sync::Arc;
 use xsynth_core::channel::{ChannelAudioEvent, ChannelEvent, VoiceChannel};
 use xsynth_core::helpers::sum_simd;
 use xsynth_core::{AudioPipe, AudioStreamParams};
+use tracing::info;
 
 const MAX_EVENT_CACHE_SIZE: u32 = 1024 * 1024;
 
@@ -19,6 +20,7 @@ pub struct ForteStandardRenderer {
 
 impl ForteStandardRenderer {
     pub fn new(state: &ForteState, instances: usize) -> Self {
+        info!("Creating new renderer with {instances} instance(s)");
         let mut channels = Vec::new();
         let mut channel_events_cache = Vec::new();
         let mut sample_cache_vecs = Vec::new();

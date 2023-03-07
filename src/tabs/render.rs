@@ -6,6 +6,7 @@ use crate::settings::ForteState;
 use crate::utils::render_in_frame;
 use crate::xsynth::{ManagerStatus, RenderThreadManager};
 use crate::app::add_gui_error;
+use tracing::{info, error};
 
 use egui_file::FileDialog;
 use std::path::Path;
@@ -56,11 +57,13 @@ impl ForteRenderTab {
                 } else if status == ManagerStatus::SFLoadError {
                     state.ui_state.rendering = false;
                     mgr.cancel();
+                    error!("Invalid Soundfont chain. Aborting render.");
                     add_gui_error(
                         "Soundfont Loader Error".to_owned(),
-                        "Invalid Soundfont Chain".to_owned(),
+                        "Invalid Soundfont chain".to_owned(),
                     );
                 } else if status == ManagerStatus::SoundfontsFinished {
+                    info!("Starting export");
                     mgr.render(state);
                     ended = false;
                 } else if status == ManagerStatus::RenderingMIDIs {
@@ -68,6 +71,7 @@ impl ForteRenderTab {
                     ended = false;
                 } else if status == ManagerStatus::RenderFinished {
                     if !mgr.spawn_next() {
+                        info!("Conversion finished");
                         state.ui_state.rendering = false;
                         mgr.cancel();
                     }
@@ -75,8 +79,7 @@ impl ForteRenderTab {
             }
         }
         if ended {
-            let tmp = self.render_manager.take();
-            std::mem::drop(tmp);
+            self.render_manager.take();
         }
 
         let progress = if let Some(mgr) = self.render_manager.as_mut() {
@@ -188,6 +191,7 @@ impl ForteRenderTab {
 
                                 if state.ui_state.rendering {
                                     if ui.add(egui::Button::new("Cancel").min_size(egui::Vec2::new(3.0 * rect.width() / 4.0 - 5.0, 40.0))).clicked() {
+                                        info!("Aborting render per user request");
                                         state.ui_state.rendering = false;
                                         if let Some(mgr) = self.render_manager.as_mut() {
                                             mgr.cancel();
@@ -208,10 +212,11 @@ impl ForteRenderTab {
                                             if let Some(path) = dialog.path() {
                                                 if path.is_dir() {
                                                     state.ui_state.rendering = true;
-                                                    //apply_synth_settings(state);
                                                     state.render_settings.output_dir = Some(path);
 
                                                     let midis = self.midi_list.iter_list().map(|item| item.path).collect();
+
+                                                    info!("Loading soundfonts");
 
                                                     match RenderThreadManager::new(state, midis) {
                                                         Ok(m) => self.render_manager = Some(m),

@@ -2,6 +2,7 @@ use crate::errors::error_types::MIDIRendererError;
 use crate::settings::ForteState;
 use hound::{WavSpec, WavWriter};
 use std::{fs::File, io::BufWriter};
+use tracing::{info, error};
 
 pub struct ForteAudioFileWriter {
     writer: WavWriter<BufWriter<File>>,
@@ -9,6 +10,7 @@ pub struct ForteAudioFileWriter {
 
 impl ForteAudioFileWriter {
     pub fn new(state: &ForteState, filename: String) -> Result<Self, MIDIRendererError> {
+        info!("Creating new audio file writer");
         let spec = WavSpec {
             channels: state.render_settings.audio_channels.count(),
             sample_rate: state.render_settings.sample_rate,
@@ -25,7 +27,10 @@ impl ForteAudioFileWriter {
 
         match writer_result {
             Ok(writer) => Ok(Self { writer }),
-            Err(err) => Err(MIDIRendererError::WriterError(err.to_string())),
+            Err(err) => {
+                error!("Writer error: {}", &err.to_string());
+                Err(MIDIRendererError::WriterError(err.to_string()))
+            },
         }
     }
 
@@ -37,6 +42,7 @@ impl ForteAudioFileWriter {
     }
 
     pub fn finalize(self) -> Result<(), MIDIRendererError> {
+        info!("Finalizing audio file");
         match self.writer.finalize() {
             Ok(..) => Ok(()),
             Err(err) => Err(MIDIRendererError::WriterError(err.to_string())),

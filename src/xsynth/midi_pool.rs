@@ -30,6 +30,7 @@ use xsynth_core::effects::VolumeLimiter;
 use xsynth_core::soundfont::{SampleSoundfont, SoundfontBase};
 use xsynth_core::AudioStreamParams;
 use std::ops::RangeInclusive;
+use tracing::{info, error};
 
 #[derive(Clone)]
 struct RenderStatsAtomic {
@@ -69,6 +70,7 @@ impl MIDIRenderer {
         midi_path: PathBuf,
         soundfonts: Arc<RwLock<HashMap<PathBuf, Arc<SampleSoundfont>>>>,
     ) -> Result<Self, MIDIRendererError> {
+        info!("Creating new single MIDI renderer");
         let allow = Arc::new(AtomicBool::new(true));
 
         let audio_params = AudioStreamParams::new(
@@ -78,7 +80,10 @@ impl MIDIRenderer {
 
         let midi = match MIDIFile::open(midi_path.clone(), None) {
             Ok(m) => m,
-            Err(err) => return Err(MIDIRendererError::LoadError(err)),
+            Err(err) => {
+                error!("Error loading MIDI: {:?}", err);
+                return Err(MIDIRendererError::LoadError(err))
+            },
         };
 
         let (receiver, renderer) = match state.render_settings.concurrency {
@@ -190,6 +195,7 @@ impl MIDIRenderer {
     }
 
     pub fn set_soundfonts(&mut self, state: &ForteState) {
+        info!("Applying soundfonts to renderer");
         let soundfonts = self.soundfonts.read().unwrap();
 
         for (i, ch) in state
@@ -247,6 +253,7 @@ impl MIDIRenderer {
     }
 
     fn finalize(&mut self) {
+        info!("Finalizing renderer");
         loop {
             self.output_vec
                 .resize(self.audio_params.sample_rate as usize, 0.0);
@@ -348,7 +355,9 @@ impl MIDIPool {
         midis: Vec<PathBuf>,
         soundfonts: Arc<RwLock<HashMap<PathBuf, Arc<SampleSoundfont>>>>,
     ) -> Result<Self, MIDIRendererError> {
+        info!("Creating new MIDI thread manager");
         if midis.is_empty() {
+            error!("The MIDI list is empty. Aborting conversion.");
             return Err(MIDIRendererError::RendererError(
                 "Empty MIDI List".to_owned(),
             ));
@@ -393,6 +402,7 @@ impl MIDIPool {
     }
 
     pub fn run(&mut self) {
+        info!("Spawning {} renderers", self.max_parallel);
         for _ in 0..self.max_parallel {
             self.spawn_next();
         }
@@ -401,6 +411,7 @@ impl MIDIPool {
 
     pub fn spawn_next(&mut self) -> bool {
         if self.get_active_len() < self.max_parallel {
+            info!("Spawning the next renderer");
             for container in &self.containers {
                 if container.status.load(Ordering::Relaxed) == MIDIRendererStatus::Idle {
                     let renderer = container.renderer.clone();

@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 use xsynth_core::AudioStreamParams;
+use tracing::info;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum ManagerStatus {
@@ -29,6 +30,7 @@ pub struct RenderThreadManager {
 
 impl RenderThreadManager {
     pub fn new(state: &ForteState, midis: Vec<PathBuf>) -> Result<Self, MIDIRendererError> {
+        info!("Creating new render thread manager");
         let soundfonts = Arc::new(RwLock::new(HashMap::new()));
 
         let mut soundfonts_paths: Vec<ForteSFListItem> = vec![];

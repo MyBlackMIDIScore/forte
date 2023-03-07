@@ -7,6 +7,7 @@ use std::sync::{atomic::AtomicBool, Arc, RwLock};
 use std::thread;
 use xsynth_core::soundfont::SampleSoundfont;
 use xsynth_core::AudioStreamParams;
+use tracing::{info, error};
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum SoundfontWorkerStatus {
@@ -32,18 +33,21 @@ impl SoundfontThread {
         let allow = Arc::new(AtomicBool::new(true));
         let allowc = allow.clone();
         thread::spawn(move || {
+            info!("Loading new soundfont: {:?}", soundfont.path.clone());
             let sf =
                 SampleSoundfont::new(soundfont.path.clone(), audio_params, soundfont.pref.init);
             match sf {
                 Ok(sf) => {
                     if allowc.load(Ordering::Relaxed) {
+                        info!("Finished loading soundfont: {:?}", soundfont.path.clone());
                         dest.write()
                             .unwrap()
                             .insert(soundfont.path.clone(), Arc::new(sf));
                     }
                     statusc.store(SoundfontWorkerStatus::Finished, Ordering::Relaxed);
                 }
-                Err(..) => {
+                Err(err) => {
+                    error!("Error loading soundfont: {:?}: {:?}", soundfont.path.clone(), err);
                     statusc.store(SoundfontWorkerStatus::Error, Ordering::Relaxed);
                 }
             }
@@ -71,6 +75,7 @@ impl SoundfontPool {
         dest: Arc<RwLock<HashMap<PathBuf, Arc<SampleSoundfont>>>>,
         audio_params: AudioStreamParams,
     ) -> Self {
+        info!("Starting new soundfont thread manager");
         let mut workers = Vec::new();
 
         for soundfont in soundfonts {

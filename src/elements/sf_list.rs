@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use xsynth_core::soundfont::SoundfontInitOptions;
 use xsynth_soundfonts::sfz::parse::parse_tokens_resolved;
 use crate::app::add_gui_error;
+use tracing::{info, warn};
 
 #[derive(Clone, PartialEq)]
 pub enum SFFormat {
@@ -51,12 +52,15 @@ impl EguiSFList {
     }
 
     pub fn add_item(&mut self, path: PathBuf) -> Result<(), FileLoadError> {
+        info!("Adding a soundfont to the list: {:?}", path.clone());
         if !path.exists() {
+            warn!("The selected soundfont does not exist");
             return Err(FileLoadError::FileNotFound);
         }
 
         if let Some(ext) = path.extension() {
             if ext == "sfz" {
+                info!("Checking soundfont integrity");
                 match parse_tokens_resolved(path.as_path()) {
                     Ok(..) => {
                         let item = ForteSFListItem {
@@ -75,12 +79,17 @@ impl EguiSFList {
                         self.id_count += 1;
                         Ok(())
                     }
-                    Err(error) => Err(FileLoadError::Corrupt(error.to_string())),
+                    Err(error) => {
+                        warn!("The selected soundfont is corrupt: {error}");
+                        Err(FileLoadError::Corrupt(error.to_string()))
+                    },
                 }
             } else {
+                warn!("The selected soundfont does not have the correct format");
                 Err(FileLoadError::InvalidFormat)
             }
         } else {
+            warn!("The selected soundfont does not have the correct format");
             Err(FileLoadError::InvalidFormat)
         }
     }

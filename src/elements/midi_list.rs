@@ -10,6 +10,7 @@ use midi_toolkit::{
 };
 use num_format::{Locale, ToFormattedString};
 use std::path::PathBuf;
+use tracing::{info, warn};
 
 #[derive(Clone, Debug)]
 pub struct ForteListItem {
@@ -34,15 +35,19 @@ impl EguiMIDIList {
     }
 
     pub fn add_item(&mut self, path: PathBuf) -> Result<(), FileLoadError> {
+        info!("Adding a MIDI to the list: {:?}", path.clone());
         if !path.exists() {
+            warn!("The selected MIDI does not exist");
             return Err(FileLoadError::FileNotFound);
         }
 
         if let Some(ext) = path.extension() {
             if ext == "mid" {
+                info!("Streaming MIDI from disk");
                 let file = MIDIFile::open(path.clone(), None);
                 match file {
                     Ok(midi) => {
+                        info!("Gathering MIDI stats");
                         let stats = pipe!(
                             midi.iter_all_tracks()|>to_vec()|>get_channels_array_statistics().unwrap()
                         );
@@ -62,25 +67,31 @@ impl EguiMIDIList {
                     }
                     Err(error) => match error {
                         MIDILoadError::CorruptChunks => {
+                            warn!("The selected MIDI has corrupt chunks");
                             Err(FileLoadError::Corrupt("Corrupt chunks".to_owned()))
                         }
                         MIDILoadError::FilesystemError(fserr) => {
+                            warn!("Filesystem error: {fserr}");
                             Err(FileLoadError::Corrupt(format!("Filesystem error: {fserr}")))
                         }
                         MIDILoadError::FileTooBig => {
+                            warn!("The selected MIDI file is too big");
                             Err(FileLoadError::Corrupt("MIDI file too big".to_owned()))
                         }
                     },
                 }
             } else {
+                warn!("The selected MIDI file does not have the correct format");
                 Err(FileLoadError::InvalidFormat)
             }
         } else {
+            warn!("The selected MIDI file does not have the correct format");
             Err(FileLoadError::InvalidFormat)
         }
     }
 
     pub fn add_folder(&mut self, dir: PathBuf) -> Result<(), FileLoadError> {
+        info!("Adding folder: {:?}", dir.clone());
         let mut result: Result<(), FileLoadError> = Ok(());
         if let Ok(paths) = std::fs::read_dir(dir) {
             for p in paths {
@@ -96,6 +107,7 @@ impl EguiMIDIList {
                 }
             }
         } else {
+            warn!("The selected folder does not exist");
             result = Err(FileLoadError::FileNotFound);
         }
         result

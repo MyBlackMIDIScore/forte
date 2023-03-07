@@ -4,6 +4,8 @@ use crate::tabs::{show_about, ForteRenderTab, ForteSynthTab, ForteTab};
 use crate::utils::set_button_spacing;
 use std::time::Duration;
 
+use tracing::info;
+
 static mut GUI_ERRORS: Vec<ErrorMessage> = Vec::new();
 
 pub struct ForteApp {
@@ -86,6 +88,7 @@ impl eframe::App for ForteApp {
 }
 
 pub fn add_gui_error(title: String, body: String) {
+    info!("Adding new GUI error message");
     unsafe {
         GUI_ERRORS.push(ErrorMessage::new(title, body));
     }
