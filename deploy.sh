@@ -3,8 +3,8 @@
 # Increase build number by one
 # build.number file must contain only the following: build=(num)
 source build.number
-echo "Current build: $build"
 build=$((build+1))
+echo "Current build: $build"
 echo "build=$build" >  "build.number"
 
 # Build executables
