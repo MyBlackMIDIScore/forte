@@ -1,11 +1,26 @@
 use crate::utils::set_button_spacing;
 use egui::Ui;
-use crate::app::add_gui_error;
+use crate::{app::add_gui_error, ICON};
 use tracing::info;
 
 pub fn show_about(ui: &mut Ui) {
-    ui.heading("Forte v0.1.0");
-    ui.label("Copyright \u{00A9} MBMS 2023");
+    ui.horizontal(|ui| {
+        let mut image = image::load_from_memory(ICON).expect("Failed to load icon");
+        if ui.ctx().style().visuals.dark_mode {
+            image.invert();
+        }
+        let image_buffer = image.to_rgba8();
+        let size = [image.width() as usize, image.height() as usize];
+        let pixels = image_buffer.to_vec();
+        let texture = ui.ctx().load_texture("icon", egui::ColorImage::from_rgba_unmultiplied(size, &pixels), Default::default());
+
+        ui.image(&texture, egui::Vec2::new(40.0, 40.0));
+
+        ui.vertical(|ui| {
+            ui.heading("Forte v0.1.0");
+            ui.label("Copyright \u{00A9} MBMS 2023");
+        })
+    });
 
     ui.separator();
 
@@ -32,7 +47,7 @@ pub fn show_about(ui: &mut Ui) {
             ui.end_row();
 
             ui.label("Egui Version:");
-            ui.label("0.20");
+            ui.label("0.21");
             ui.end_row();
         });
 

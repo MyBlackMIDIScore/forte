@@ -53,7 +53,7 @@ impl Default for SingleChannelSettings {
 
         Self {
             channel_init_options,
-            layer_limit: Some(10),
+            layer_limit: Some(32),
             soundfonts: Vec::new(),
             use_threadpool: true,
         }
