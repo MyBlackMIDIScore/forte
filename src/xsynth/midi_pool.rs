@@ -265,9 +265,15 @@ impl MIDIRenderer {
                     break;
                 }
             }
+
             if is_empty {
                 break;
             }
+
+            if let Some(limiter) = &mut self.limiter {
+                limiter.limit(&mut self.output_vec);
+            }
+
             for sample in self.output_vec.drain(..) {
                 self.writer.send(sample).unwrap_or_default();
             }
