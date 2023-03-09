@@ -47,6 +47,7 @@ fn main() {
         initial_window_size: Some(egui::Vec2::new(900.0, 600.0)),
         min_window_size: Some(egui::Vec2::new(720.0, 400.0)),
         follow_system_theme: true,
+        drag_and_drop_support: true,
         ..Default::default()
     };
 

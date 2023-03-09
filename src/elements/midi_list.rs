@@ -11,6 +11,7 @@ use midi_toolkit::{
 use num_format::{Locale, ToFormattedString};
 use std::path::PathBuf;
 use tracing::{info, warn};
+use crate::app::add_gui_error;
 
 #[derive(Clone, Debug)]
 pub struct ForteListItem {
@@ -175,29 +176,54 @@ impl EguiMIDIList {
     }
 
     pub fn show(&mut self, ui: &mut Ui) {
-        ScrollArea::both().show(ui, |ui| {
-            let events = ui.input().events.clone();
-            for event in &events {
-                if let egui::Event::Key {
-                    key,
-                    modifiers,
-                    pressed,
-                } = event
-                {
-                    match *key {
-                        egui::Key::A => {
-                            if *pressed && modifiers.ctrl {
-                                self.select_all();
-                            }
+        let events = ui.input().events.clone();
+        for event in &events {
+            if let egui::Event::Key {
+                key,
+                modifiers,
+                pressed,
+            } = event
+            {
+                match *key {
+                    egui::Key::A => {
+                        if *pressed && modifiers.ctrl {
+                            self.select_all();
                         }
-                        egui::Key::Delete => {
-                            self.remove_selected_items();
-                        }
-                        _ => {}
                     }
+                    egui::Key::Delete => {
+                        self.remove_selected_items();
+                    }
+                    _ => {}
                 }
             }
+        }
 
+        if !ui.input().raw.dropped_files.is_empty() {
+            println!("files dropped");
+
+            let dropped_files = ui
+            .input()
+            .raw
+            .dropped_files
+            .clone()
+            .iter()
+            .map(|file| file.path.as_ref().unwrap().clone())
+            .collect::<Vec<PathBuf>>();
+
+            for file in dropped_files {
+                if let Err(error) = self.add_item(file.clone()) {
+                    let title = if let Some(filen) = file.file_name() {
+                        // Not a safe unwrap but things must be very wrong for it to panic so idc
+                        format!("There was an error adding \"{}\" to the list.", filen.to_str().unwrap())
+                    } else {
+                        "There was an error adding the selected MIDI to the list.".to_string()
+                    };
+                    add_gui_error(title, error.to_string());
+                }
+            }
+        }
+
+        ScrollArea::both().show(ui, |ui| {
             TableBuilder::new(ui)
                 .striped(true)
                 .cell_layout(egui::Layout::centered_and_justified(

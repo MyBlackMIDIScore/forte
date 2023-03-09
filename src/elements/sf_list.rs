@@ -151,6 +151,31 @@ impl EguiSFList {
             }
         }
 
+        if !ui.input().raw.dropped_files.is_empty() {
+            println!("files dropped");
+
+            let dropped_files = ui
+                .input()
+                .raw
+                .dropped_files
+                .clone()
+                .iter()
+                .map(|file| file.path.as_ref().unwrap().clone())
+                .collect::<Vec<PathBuf>>();
+
+            for file in dropped_files {
+                if let Err(error) = self.add_item(file.clone()) {
+                    let title = if let Some(filen) = file.file_name() {
+                        // Not a safe unwrap but things must be very wrong for it to panic so idc
+                        format!("There was an error adding \"{}\" to the list.", filen.to_str().unwrap())
+                    } else {
+                        "There was an error adding the selected soundfont to the list.".to_string()
+                    };
+                    add_gui_error(title, error.to_string());
+                }
+            }
+        }
+
         self.sf_cfg_win = self
             .sf_cfg_win
             .clone()
