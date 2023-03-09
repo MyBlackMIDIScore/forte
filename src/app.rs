@@ -28,8 +28,26 @@ impl Default for ForteApp {
 
 impl ForteApp {
     pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
+        //Self::set_font(&cc.egui_ctx);
         Default::default()
     }
+
+    /*fn set_font(ctx: &egui::Context) {
+        let mut fonts = egui::FontDefinitions::default();
+
+        fonts.font_data.insert(
+            "poppins".to_owned(),
+            egui::FontData::from_static(include_bytes!("../assets/Poppins-Light.ttf")),
+        );
+
+        fonts
+            .families
+            .entry(egui::FontFamily::Proportional)
+            .or_default()
+            .insert(0, "poppins".to_owned());
+
+        ctx.set_fonts(fonts);
+    }*/
 }
 
 impl eframe::App for ForteApp {

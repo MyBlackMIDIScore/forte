@@ -15,13 +15,11 @@ use tracing_subscriber::{
 };
 use tracing::info;
 
-const ICON: &[u8; 3057] = include_bytes!("../assets/forte.png");
+const ICON: &[u8; 92050] = include_bytes!("../assets/forte.png");
 
 fn load_icon() -> eframe::IconData {
     let (icon_rgba, icon_width, icon_height) = {
-        let mut image = image::load_from_memory(ICON).expect("Failed to load icon");
-        image.crop_imm(50, 44, 150, 157);
-        image.invert();
+        let image = image::load_from_memory(ICON).expect("Failed to load icon");
         let image = image.into_rgba8();
         let (width, height) = image.dimensions();
         let rgba = image.into_raw();
