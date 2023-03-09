@@ -9,11 +9,8 @@ mod utils;
 mod writer;
 mod xsynth;
 
-use tracing_subscriber::{
-    fmt,
-    layer::SubscriberExt,
-};
 use tracing::info;
+use tracing_subscriber::{fmt, layer::SubscriberExt};
 
 const ICON: &[u8; 92050] = include_bytes!("../assets/forte.png");
 
@@ -39,8 +36,9 @@ fn main() {
     tracing::subscriber::set_global_default(
         fmt::Subscriber::builder()
             .finish()
-            .with(fmt::Layer::default().with_writer(file_writer))
-    ).expect("Unable to set global tracing subscriber");
+            .with(fmt::Layer::default().with_writer(file_writer)),
+    )
+    .expect("Unable to set global tracing subscriber");
 
     let native_options = eframe::NativeOptions {
         icon_data: Some(load_icon()),

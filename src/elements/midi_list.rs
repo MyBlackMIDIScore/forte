@@ -1,3 +1,4 @@
+use crate::app::add_gui_error;
 use crate::errors::error_types::FileLoadError;
 use crate::utils::{bytes_to_filesize_str, f64_to_time_str};
 use crate::xsynth::RenderStats;
@@ -11,7 +12,6 @@ use midi_toolkit::{
 use num_format::{Locale, ToFormattedString};
 use std::path::PathBuf;
 use tracing::{info, warn};
-use crate::app::add_gui_error;
 
 #[derive(Clone, Debug)]
 pub struct ForteListItem {
@@ -36,7 +36,7 @@ impl EguiMIDIList {
     }
 
     pub fn add_item(&mut self, path: PathBuf) -> Result<(), FileLoadError> {
-        info!("Adding a MIDI to the list: {:?}", path.clone());
+        info!("Adding a MIDI to the list: {:?}", path);
         if !path.exists() {
             warn!("The selected MIDI does not exist");
             return Err(FileLoadError::FileNotFound);
@@ -92,18 +92,16 @@ impl EguiMIDIList {
     }
 
     pub fn add_folder(&mut self, dir: PathBuf) -> Result<(), FileLoadError> {
-        info!("Adding folder: {:?}", dir.clone());
+        info!("Adding folder: {:?}", dir);
         let mut result: Result<(), FileLoadError> = Ok(());
         if let Ok(paths) = std::fs::read_dir(dir) {
-            for p in paths {
-                if let Ok(p) = p {
-                    let p = p.path();
-                    if p.is_dir() {
-                        result = self.add_folder(p);
-                    } else if let Some(ext) = p.extension() {
-                        if ext == "mid" {
-                            result = self.add_item(p);
-                        }
+            for p in paths.flatten() {
+                let p = p.path();
+                if p.is_dir() {
+                    result = self.add_folder(p);
+                } else if let Some(ext) = p.extension() {
+                    if ext == "mid" {
+                        result = self.add_item(p);
                     }
                 }
             }
@@ -163,7 +161,7 @@ impl EguiMIDIList {
                     }
                 }
             }
-            None => {},
+            None => {}
         };
 
         let mut out = 0.0;
@@ -202,19 +200,22 @@ impl EguiMIDIList {
             println!("files dropped");
 
             let dropped_files = ui
-            .input()
-            .raw
-            .dropped_files
-            .clone()
-            .iter()
-            .map(|file| file.path.as_ref().unwrap().clone())
-            .collect::<Vec<PathBuf>>();
+                .input()
+                .raw
+                .dropped_files
+                .clone()
+                .iter()
+                .map(|file| file.path.as_ref().unwrap().clone())
+                .collect::<Vec<PathBuf>>();
 
             for file in dropped_files {
                 if let Err(error) = self.add_item(file.clone()) {
                     let title = if let Some(filen) = file.file_name() {
                         // Not a safe unwrap but things must be very wrong for it to panic so idc
-                        format!("There was an error adding \"{}\" to the list.", filen.to_str().unwrap())
+                        format!(
+                            "There was an error adding \"{}\" to the list.",
+                            filen.to_str().unwrap()
+                        )
                     } else {
                         "There was an error adding the selected MIDI to the list.".to_string()
                     };
@@ -270,17 +271,20 @@ impl EguiMIDIList {
                                 };
 
                                 if let Some(stats) = &self.stats {
-                                    if let Some(stats) = stats.get(idx) {
-                                        if let Some(stats) = stats {
-                                            ui.horizontal(|ui| {
-                                                ui.add(
-                                                    egui::widgets::ProgressBar::new((stats.time / item.length) as f32)
-                                                        .text(txt),
-                                                ).on_hover_text(format!("Time: {} | Voice Count: {}", f64_to_time_str(stats.time), stats.voice_count));
-                                            });
-                                        } else {
-                                            gen_selectable();
-                                        }
+                                    if let Some(Some(stats)) = stats.get(idx) {
+                                        ui.horizontal(|ui| {
+                                            ui.add(
+                                                egui::widgets::ProgressBar::new(
+                                                    (stats.time / item.length) as f32,
+                                                )
+                                                .text(txt),
+                                            )
+                                            .on_hover_text(format!(
+                                                "Time: {} | Voice Count: {}",
+                                                f64_to_time_str(stats.time),
+                                                stats.voice_count
+                                            ));
+                                        });
                                     } else {
                                         gen_selectable();
                                     }
@@ -289,16 +293,13 @@ impl EguiMIDIList {
                                 }
                             });
                             row.col(|ui| {
-                                ui.label(format!("{}", bytes_to_filesize_str(item.filesize)));
+                                ui.label(bytes_to_filesize_str(item.filesize));
                             });
                             row.col(|ui| {
                                 ui.label(f64_to_time_str(item.length));
                             });
                             row.col(|ui| {
-                                ui.label(format!(
-                                    "{}",
-                                    item.note_count.to_formatted_string(&Locale::en)
-                                ));
+                                ui.label(item.note_count.to_formatted_string(&Locale::en));
                             });
                         });
                     }

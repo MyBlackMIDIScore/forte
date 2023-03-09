@@ -6,8 +6,8 @@ use crate::settings::ForteState;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
-use xsynth_core::AudioStreamParams;
 use tracing::info;
+use xsynth_core::AudioStreamParams;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum ManagerStatus {
@@ -36,11 +36,10 @@ impl RenderThreadManager {
         let mut soundfonts_paths: Vec<ForteSFListItem> = vec![];
         for channel in state.synth_settings.channel_settings.clone() {
             for sf in channel.soundfonts {
-                if soundfonts_paths
+                if !soundfonts_paths
                     .clone()
                     .into_iter()
-                    .find(|item| item.path == sf.path)
-                    .is_none()
+                    .any(|item| item.path == sf.path)
                 {
                     soundfonts_paths.push(sf);
                 }

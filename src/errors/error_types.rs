@@ -20,23 +20,23 @@ impl fmt::Display for FileLoadError {
 
 #[derive(Debug)]
 pub enum MIDIRendererError {
-    LoadError(MIDILoadError),
-    RendererError(String),
-    WriterError(String),
+    Load(MIDILoadError),
+    Renderer(String),
+    Writer(String),
 }
 
 impl fmt::Display for MIDIRendererError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            MIDIRendererError::LoadError(e) => match e {
+            MIDIRendererError::Load(e) => match e {
                 MIDILoadError::CorruptChunks => write!(f, "MIDI Load Error: Corrupt Chunks"),
                 MIDILoadError::FilesystemError(fs) => {
-                    write!(f, "MIDI Load Error: Filesystem Error ({})", fs.to_string())
+                    write!(f, "MIDI Load Error: Filesystem Error ({fs})")
                 }
                 MIDILoadError::FileTooBig => write!(f, "MIDI Load Error: File Too Big"),
             },
-            MIDIRendererError::RendererError(string) => write!(f, "Renderer Error: {string}"),
-            MIDIRendererError::WriterError(string) => write!(f, "Writer Error: {string}"),
+            MIDIRendererError::Renderer(string) => write!(f, "Renderer Error: {string}"),
+            MIDIRendererError::Writer(string) => write!(f, "Writer Error: {string}"),
         }
     }
 }

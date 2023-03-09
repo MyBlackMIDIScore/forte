@@ -17,8 +17,8 @@ pub fn f64_to_time_str(time: f64) -> String {
 
 pub fn bytes_to_filesize_str(size: u64) -> String {
     if size < 1000 {
-        format!("{}B", size)
-    } else if size >= 1000 && size < 1000000 {
+        format!("{size}B")
+    } else if (1000..1000000).contains(&size) {
         format!("{:.1}KB", size as f32 / 1000.0)
     } else if size >= 1000000 {
         format!("{:.1}MB", size as f32 / 1000000.0)

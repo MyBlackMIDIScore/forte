@@ -12,9 +12,9 @@ pub enum RenderMode {
     RealtimeSimulation = 1,
 }
 
-impl Into<usize> for RenderMode {
-    fn into(self) -> usize {
-        self as usize
+impl From<RenderMode> for usize {
+    fn from(val: RenderMode) -> Self {
+        val as usize
     }
 }
 
@@ -27,9 +27,9 @@ pub enum Concurrency {
     Both,
 }
 
-impl Into<usize> for Concurrency {
-    fn into(self) -> usize {
-        match self {
+impl From<Concurrency> for usize {
+    fn from(val: Concurrency) -> Self {
+        match val {
             Concurrency::None => 0,
             Concurrency::ParallelMIDIs => 1,
             Concurrency::ParallelTracks => 2,
@@ -48,8 +48,10 @@ pub struct SingleChannelSettings {
 
 impl Default for SingleChannelSettings {
     fn default() -> Self {
-        let mut channel_init_options = ChannelInitOptions::default();
-        channel_init_options.fade_out_killing = true;
+        let channel_init_options = ChannelInitOptions {
+            fade_out_killing: true,
+            //..Default::default()
+        };
 
         Self {
             channel_init_options,

@@ -2,10 +2,10 @@ use super::{Renderer, SynthEvent};
 use crate::settings::ForteState;
 use rayon::prelude::*;
 use std::sync::Arc;
+use tracing::info;
 use xsynth_core::channel::{ChannelAudioEvent, ChannelEvent, VoiceChannel};
 use xsynth_core::helpers::sum_simd;
 use xsynth_core::{AudioPipe, AudioStreamParams};
-use tracing::info;
 
 const MAX_EVENT_CACHE_SIZE: u32 = 1024 * 1024;
 
@@ -129,7 +129,7 @@ impl Renderer for ForteStandardRenderer {
                 }
             }
             SynthEvent::ChannelConfig(channel, config) => {
-                self.channels[channel as usize].process_event(ChannelEvent::Config(config.clone()));
+                self.channels[channel as usize].process_event(ChannelEvent::Config(config));
             }
         }
     }

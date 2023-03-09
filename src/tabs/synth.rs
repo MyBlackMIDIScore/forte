@@ -56,13 +56,7 @@ impl ForteSynthTab {
         }
     }
 
-    pub fn show(
-        &mut self,
-        ui: &mut Ui,
-        state: &mut ForteState,
-        ctx: &Context,
-    )
-    {
+    pub fn show(&mut self, ui: &mut Ui, state: &mut ForteState, ctx: &Context) {
         ui.horizontal(|ui| {
             ui.heading("Synthesizer Configuration");
             ui.separator();
@@ -115,10 +109,7 @@ impl ForteSynthTab {
                     }
                     SynthCfgType::PerChannel => {
                         render_in_frame(ui, |ui| {
-                            self.sf_split_lists[self.sf_split_selected].show(
-                                ui,
-                                ctx,
-                            );
+                            self.sf_split_lists[self.sf_split_selected].show(ui, ctx);
                         });
                     }
                 }

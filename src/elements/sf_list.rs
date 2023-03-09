@@ -1,3 +1,4 @@
+use crate::app::add_gui_error;
 use crate::elements::sf_cfg::SoundfontConfigWindow;
 use crate::errors::error_types::FileLoadError;
 use egui::{containers::scroll_area::ScrollArea, Context, Ui};
@@ -5,14 +6,13 @@ use egui_extras::{Column, TableBuilder};
 use egui_file::FileDialog;
 use std::path::Path;
 use std::path::PathBuf;
+use tracing::{info, warn};
 use xsynth_core::soundfont::SoundfontInitOptions;
 use xsynth_soundfonts::sfz::parse::parse_tokens_resolved;
-use crate::app::add_gui_error;
-use tracing::{info, warn};
 
 #[derive(Clone, PartialEq)]
 pub enum SFFormat {
-    SFZ,
+    Sfz,
 }
 
 #[derive(Clone)]
@@ -52,7 +52,7 @@ impl EguiSFList {
     }
 
     pub fn add_item(&mut self, path: PathBuf) -> Result<(), FileLoadError> {
-        info!("Adding a soundfont to the list: {:?}", path.clone());
+        info!("Adding a soundfont to the list: {:?}", path);
         if !path.exists() {
             warn!("The selected soundfont does not exist");
             return Err(FileLoadError::FileNotFound);
@@ -67,7 +67,7 @@ impl EguiSFList {
                             id: self.id_count,
                             enabled: true,
                             selected: false,
-                            format: SFFormat::SFZ,
+                            format: SFFormat::Sfz,
                             path,
                             pref: SFPref {
                                 init: Default::default(),
@@ -82,7 +82,7 @@ impl EguiSFList {
                     Err(error) => {
                         warn!("The selected soundfont is corrupt: {error}");
                         Err(FileLoadError::Corrupt(error.to_string()))
-                    },
+                    }
                 }
             } else {
                 warn!("The selected soundfont does not have the correct format");
@@ -127,8 +127,7 @@ impl EguiSFList {
         self.list.clone().into_iter()
     }
 
-    pub fn show(&mut self, ui: &mut Ui, ctx: &Context)
-    {
+    pub fn show(&mut self, ui: &mut Ui, ctx: &Context) {
         let events = ui.input().events.clone();
         for event in &events {
             if let egui::Event::Key {
@@ -167,7 +166,10 @@ impl EguiSFList {
                 if let Err(error) = self.add_item(file.clone()) {
                     let title = if let Some(filen) = file.file_name() {
                         // Not a safe unwrap but things must be very wrong for it to panic so idc
-                        format!("There was an error adding \"{}\" to the list.", filen.to_str().unwrap())
+                        format!(
+                            "There was an error adding \"{}\" to the list.",
+                            filen.to_str().unwrap()
+                        )
                     } else {
                         "There was an error adding the selected soundfont to the list.".to_string()
                     };
@@ -180,7 +182,7 @@ impl EguiSFList {
             .sf_cfg_win
             .clone()
             .into_iter()
-            .filter(|item| item.visible == true)
+            .filter(|item| item.visible)
             .collect();
 
         for cfg in self.sf_cfg_win.iter_mut() {
@@ -198,11 +200,7 @@ impl EguiSFList {
                 if ui.button("Add Soundfont").clicked() {
                     let filter = |path: &Path| {
                         if let Some(path) = path.to_str() {
-                            if path.ends_with(".sfz") {
-                                true
-                            } else {
-                                false
-                            }
+                            path.ends_with(".sfz")
                         } else {
                             false
                         }
@@ -311,20 +309,15 @@ impl EguiSFList {
                                 if selectable.clicked() {
                                     item.selected = !item.selected;
                                 }
-                                if selectable.double_clicked() {
-                                    if self
-                                        .sf_cfg_win
-                                        .iter()
-                                        .find(|cfg| cfg.id() == item.id)
-                                        .is_none()
-                                    {
-                                        self.sf_cfg_win.push(SoundfontConfigWindow::new(item.id))
-                                    }
+                                if selectable.double_clicked()
+                                    && !self.sf_cfg_win.iter().any(|cfg| cfg.id() == item.id)
+                                {
+                                    self.sf_cfg_win.push(SoundfontConfigWindow::new(item.id))
                                 }
                             });
                             row.col(|ui| {
                                 ui.label(match item.format {
-                                    SFFormat::SFZ => "SFZ",
+                                    SFFormat::Sfz => "SFZ",
                                 });
                             });
                             row.col(|ui| {

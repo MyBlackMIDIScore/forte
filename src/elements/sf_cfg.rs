@@ -18,7 +18,7 @@ impl SoundfontConfigWindow {
 
     pub fn show(&mut self, ctx: &Context, item: &mut ForteSFListItem) {
         let title = if let Some(path) = item.path.file_name() {
-            format!("Config for {:?}", path)
+            format!("Config for {path:?}")
         } else {
             format!("Config for {}", self.id)
         };

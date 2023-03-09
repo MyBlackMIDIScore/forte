@@ -30,7 +30,7 @@ pub fn show_render_settings(ui: &mut Ui, state: &mut ForteState) {
                 };
             }
 
-            let conc = ["None", "MIDIs in parallel", "Tracks in parallel (N/A)"];//, "Both"];
+            let conc = ["None", "MIDIs in parallel", "Tracks in parallel (N/A)"]; //, "Both"];
             let mut conc_state = state.render_settings.concurrency.into();
 
             ui.label("Concurrency:");

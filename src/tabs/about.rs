@@ -1,7 +1,6 @@
-use egui::Ui;
 use crate::{app::add_gui_error, ICON};
+use egui::Ui;
 use tracing::info;
-use open;
 
 pub fn show_about(ui: &mut Ui) {
     ui.horizontal(|ui| {
@@ -9,20 +8,24 @@ pub fn show_about(ui: &mut Ui) {
         let image_buffer = image.to_rgba8();
         let size = [image.width() as usize, image.height() as usize];
         let pixels = image_buffer.to_vec();
-        let texture = ui.ctx().load_texture("icon", egui::ColorImage::from_rgba_unmultiplied(size, &pixels), Default::default());
+        let texture = ui.ctx().load_texture(
+            "icon",
+            egui::ColorImage::from_rgba_unmultiplied(size, &pixels),
+            Default::default(),
+        );
 
         let image_size = 100.0;
 
         let title_size = 32.0;
-        let mut titleid = egui::FontId::default();
-        titleid.size = title_size;
+        let titleid = egui::FontId {
+            size: title_size,
+            ..Default::default()
+        };
 
         let title_text = "Forte v0.1.0b";
-        let title_galley = ui.painter().layout_no_wrap(
-            title_text.to_owned(),
-            titleid,
-            egui::Color32::WHITE,
-        );
+        let title_galley =
+            ui.painter()
+                .layout_no_wrap(title_text.to_owned(), titleid, egui::Color32::WHITE);
 
         let cop_text = "Copyright \u{00A9} MBMS 2023";
         let cop_galley = ui.painter().layout_no_wrap(
@@ -31,14 +34,17 @@ pub fn show_about(ui: &mut Ui) {
             egui::Color32::WHITE,
         );
 
-        let logo_width = image_size + ui.spacing().item_spacing.x + title_galley.size().x.max(cop_galley.size().x);
+        let logo_width = image_size
+            + ui.spacing().item_spacing.x
+            + title_galley.size().x.max(cop_galley.size().x);
         let space = ui.available_width() / 2.0 - logo_width / 2.0;
 
         ui.add_space(space);
         ui.image(&texture, egui::Vec2::new(image_size, image_size));
 
         ui.vertical(|ui| {
-            let text_height = title_galley.size().y + cop_galley.size().y + ui.spacing().item_spacing.y;
+            let text_height =
+                title_galley.size().y + cop_galley.size().y + ui.spacing().item_spacing.y;
             let space = (image_size - text_height) / 2.0;
             ui.add_space(space);
 
@@ -108,7 +114,10 @@ pub fn show_about(ui: &mut Ui) {
 
         if ui.button(upd_text).clicked() {
             info!("No updates found");
-            add_gui_error("No Updates Found".to_owned(), "Forte is all up to date!".to_owned());
+            add_gui_error(
+                "No Updates Found".to_owned(),
+                "Forte is all up to date!".to_owned(),
+            );
         }
 
         if ui.button(gh_text).clicked() {

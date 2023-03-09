@@ -1,12 +1,12 @@
 use egui::{Context, Ui};
 use egui_extras::{Size, StripBuilder};
 
+use crate::app::add_gui_error;
 use crate::elements::{midi_list::EguiMIDIList, render_settings::show_render_settings};
 use crate::settings::ForteState;
 use crate::utils::render_in_frame;
 use crate::xsynth::{ManagerStatus, RenderThreadManager};
-use crate::app::add_gui_error;
-use tracing::{info, error};
+use tracing::{error, info};
 
 use egui_file::FileDialog;
 use std::path::Path;
@@ -28,13 +28,7 @@ impl ForteRenderTab {
         }
     }
 
-    pub fn show(
-        &mut self,
-        ui: &mut Ui,
-        state: &mut ForteState,
-        ctx: &Context,
-    )
-    {
+    pub fn show(&mut self, ui: &mut Ui, state: &mut ForteState, ctx: &Context) {
         let mut ended = true;
         if state.ui_state.rendering {
             if self.file_dialog.is_some() {
@@ -69,12 +63,10 @@ impl ForteRenderTab {
                 } else if status == ManagerStatus::RenderingMIDIs {
                     mgr.spawn_next();
                     ended = false;
-                } else if status == ManagerStatus::RenderFinished {
-                    if !mgr.spawn_next() {
-                        info!("Conversion finished");
-                        state.ui_state.rendering = false;
-                        mgr.cancel();
-                    }
+                } else if status == ManagerStatus::RenderFinished && !mgr.spawn_next() {
+                    info!("Conversion finished");
+                    state.ui_state.rendering = false;
+                    mgr.cancel();
                 }
             }
         }
@@ -112,11 +104,7 @@ impl ForteRenderTab {
                                     if ui.add(egui::Button::new("Add MIDI").min_size(egui::Vec2::new(rect.width() / 2.0 - 5.0, 18.0))).clicked() {
                                         let filter = |path: &Path| {
                                             if let Some(path) = path.to_str() {
-                                                if path.ends_with(".mid") {
-                                                    true
-                                                } else {
-                                                    false
-                                                }
+                                                path.ends_with(".mid")
                                             } else {
                                                 false
                                             }

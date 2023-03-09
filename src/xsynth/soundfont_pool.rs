@@ -5,9 +5,9 @@ use std::path::PathBuf;
 use std::sync::atomic::Ordering;
 use std::sync::{atomic::AtomicBool, Arc, RwLock};
 use std::thread;
+use tracing::{error, info};
 use xsynth_core::soundfont::SampleSoundfont;
 use xsynth_core::AudioStreamParams;
-use tracing::{info, error};
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum SoundfontWorkerStatus {
@@ -33,13 +33,13 @@ impl SoundfontThread {
         let allow = Arc::new(AtomicBool::new(true));
         let allowc = allow.clone();
         thread::spawn(move || {
-            info!("Loading new soundfont: {:?}", soundfont.path.clone());
+            info!("Loading new soundfont: {:?}", soundfont.path);
             let sf =
                 SampleSoundfont::new(soundfont.path.clone(), audio_params, soundfont.pref.init);
             match sf {
                 Ok(sf) => {
                     if allowc.load(Ordering::Relaxed) {
-                        info!("Finished loading soundfont: {:?}", soundfont.path.clone());
+                        info!("Finished loading soundfont: {:?}", soundfont.path);
                         dest.write()
                             .unwrap()
                             .insert(soundfont.path.clone(), Arc::new(sf));
@@ -47,7 +47,7 @@ impl SoundfontThread {
                     statusc.store(SoundfontWorkerStatus::Finished, Ordering::Relaxed);
                 }
                 Err(err) => {
-                    error!("Error loading soundfont: {:?}: {:?}", soundfont.path.clone(), err);
+                    error!("Error loading soundfont: {:?}: {:?}", soundfont.path, err);
                     statusc.store(SoundfontWorkerStatus::Error, Ordering::Relaxed);
                 }
             }

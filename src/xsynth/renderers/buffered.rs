@@ -7,10 +7,10 @@ use std::sync::{
     Arc,
 };
 use std::thread;
+use tracing::info;
 use xsynth_core::channel::{ChannelEvent, VoiceChannel};
 use xsynth_core::helpers::{prepapre_cache_vec, sum_simd};
 use xsynth_core::{AudioPipe, AudioStreamParams, BufferedRenderer, FunctionAudioPipe};
-use tracing::info;
 
 pub struct ForteBufferedRenderer {
     buffered: BufferedRenderer,

@@ -18,6 +18,7 @@ use midi_toolkit::{
     },
 };
 use std::collections::HashMap;
+use std::ops::RangeInclusive;
 use std::path::PathBuf;
 use std::sync::atomic::Ordering;
 use std::sync::{
@@ -25,12 +26,11 @@ use std::sync::{
     Arc, RwLock,
 };
 use std::thread;
+use tracing::{error, info};
 use xsynth_core::channel::{ChannelAudioEvent, ChannelConfigEvent, ControlEvent};
 use xsynth_core::effects::VolumeLimiter;
 use xsynth_core::soundfont::{SampleSoundfont, SoundfontBase};
 use xsynth_core::AudioStreamParams;
-use std::ops::RangeInclusive;
-use tracing::{info, error};
 
 #[derive(Clone)]
 struct RenderStatsAtomic {
@@ -82,55 +82,51 @@ impl MIDIRenderer {
             Ok(m) => m,
             Err(err) => {
                 error!("Error loading MIDI: {:?}", err);
-                return Err(MIDIRendererError::LoadError(err))
-            },
+                return Err(MIDIRendererError::Load(err));
+            }
         };
 
-        let (receiver, renderer) = match state.render_settings.concurrency {
-            _ => {
-                let ppq = midi.ppq();
-                let merged = pipe!(
-                    midi.iter_all_events_merged_batches()
-                    |>TimeCaster::<f64>::cast_event_delta()
-                    |>cancel_tempo_events(250000)
-                    |>scale_event_time(1.0 / ppq as f64)
-                    |>unwrap_items()
-                );
+        let (receiver, renderer) = {
+            let ppq = midi.ppq();
+            let merged = pipe!(
+                midi.iter_all_events_merged_batches()
+                |>TimeCaster::<f64>::cast_event_delta()
+                |>cancel_tempo_events(250000)
+                |>scale_event_time(1.0 / ppq as f64)
+                |>unwrap_items()
+            );
 
-                let (midi_snd, midi_rcv) = crossbeam_channel::bounded(100);
+            let (midi_snd, midi_rcv) = crossbeam_channel::bounded(100);
 
-                let allow_c1 = allow.clone();
-                thread::spawn(move || {
-                    for event in merged {
-                        if !allow_c1.load(Ordering::Relaxed) {
-                            break;
-                        }
-                        midi_snd.send(event).unwrap_or_default();
+            let allow_c1 = allow.clone();
+            thread::spawn(move || {
+                for event in merged {
+                    if !allow_c1.load(Ordering::Relaxed) {
+                        break;
                     }
-                });
-
-                let mut renderer: Box<dyn Renderer> = match state.render_settings.render_mode {
-                    RenderMode::RealtimeSimulation => {
-                        Box::new(ForteBufferedRenderer::new(state, 1))
-                    }
-                    RenderMode::Standard => Box::new(ForteStandardRenderer::new(state, 1)),
-                };
-
-                for (i, ch) in state
-                    .synth_settings
-                    .channel_settings
-                    .clone()
-                    .into_iter()
-                    .enumerate()
-                {
-                    renderer.send_event(SynthEvent::ChannelConfig(
-                        i as u32,
-                        ChannelConfigEvent::SetLayerCount(ch.layer_limit),
-                    ));
+                    midi_snd.send(event).unwrap_or_default();
                 }
+            });
 
-                (midi_rcv, renderer)
+            let mut renderer: Box<dyn Renderer> = match state.render_settings.render_mode {
+                RenderMode::RealtimeSimulation => Box::new(ForteBufferedRenderer::new(state, 1)),
+                RenderMode::Standard => Box::new(ForteStandardRenderer::new(state, 1)),
+            };
+
+            for (i, ch) in state
+                .synth_settings
+                .channel_settings
+                .clone()
+                .into_iter()
+                .enumerate()
+            {
+                renderer.send_event(SynthEvent::ChannelConfig(
+                    i as u32,
+                    ChannelConfigEvent::SetLayerCount(ch.layer_limit),
+                ));
             }
+
+            (midi_rcv, renderer)
         };
 
         let out_filename = if let Some(filename) = midi_path.file_name() {
@@ -364,9 +360,7 @@ impl MIDIPool {
         info!("Creating new MIDI thread manager");
         if midis.is_empty() {
             error!("The MIDI list is empty. Aborting conversion.");
-            return Err(MIDIRendererError::RendererError(
-                "Empty MIDI List".to_owned(),
-            ));
+            return Err(MIDIRendererError::Renderer("Empty MIDI List".to_owned()));
         }
 
         let mut containers = Vec::new();
