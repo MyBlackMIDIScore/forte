@@ -1,6 +1,6 @@
 <h1 align="center">Forte</h1>
 <p align="center">A fast cross-platform MIDI to WAV converter using XSynth</p>
-<p align="center"><img src="https://i.imgur.com/sT8pzGM.png" width="512"/></p>
+<p align="center"><img src="https://github.com/MyBlackMIDIScore/forte/raw/master/assets/forte.png" width="80"/></p>
 
 ## Features
 - Multithreaded
