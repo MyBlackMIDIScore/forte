@@ -9,8 +9,8 @@ eframe = "0.20"
 proc-macro2 = "1.0.50"
 midi-toolkit-rs = { git = "https://github.com/arduano/midi-toolkit-rs", rev = "4482d61" }
 serde = "1.0.152"
-xsynth-core = { git = "https://github.com/arduano/xsynth", rev = "2ef486b" }
-xsynth-soundfonts = { git = "https://github.com/arduano/xsynth", rev = "2ef486b" }
+xsynth-core = { git = "https://github.com/arduano/xsynth", branch = "linear-interp-fix" }
+xsynth-soundfonts = { git = "https://github.com/arduano/xsynth", branch = "linear-interp-fix" }
 egui_extras = "0.20"
 egui_file = "0.7.0"
 rand = "0.8.5"

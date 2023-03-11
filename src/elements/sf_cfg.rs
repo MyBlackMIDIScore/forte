@@ -1,5 +1,6 @@
 use crate::elements::sf_list::ForteSFListItem;
 use egui::{Context, Window};
+use xsynth_core::soundfont::Interpolator;
 
 #[derive(Clone)]
 pub struct SoundfontConfigWindow {
@@ -63,6 +64,26 @@ impl SoundfontConfigWindow {
                         ui.label("Linear Release Envelope: ");
                         ui.checkbox(&mut item.pref.init.linear_release, "");
                         ui.end_row();
+
+                        let interp = ["Nearest Neighbor", "Linear"];
+                        let mut interp_idx = item.pref.init.interpolator as usize;
+
+                        ui.label("Interpolation:");
+                        egui::ComboBox::from_id_source("interpolation").show_index(
+                            ui,
+                            &mut interp_idx,
+                            interp.len(),
+                            |i| interp[i].to_owned(),
+                        );
+                        ui.end_row();
+
+                        if interp_idx != item.pref.init.interpolator as usize {
+                            match interp_idx {
+                                0 => item.pref.init.interpolator = Interpolator::Nearest,
+                                1 => item.pref.init.interpolator = Interpolator::Linear,
+                                _ => item.pref.init.interpolator = Interpolator::Nearest,
+                            };
+                        }
                     });
             });
     }
