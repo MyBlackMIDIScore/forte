@@ -128,12 +128,13 @@ impl EguiSFList {
     }
 
     pub fn show(&mut self, ui: &mut Ui, ctx: &Context) {
-        let events = ui.input().events.clone();
+        let events = ui.input(|i| i.events.clone());
         for event in &events {
             if let egui::Event::Key {
                 key,
                 modifiers,
                 pressed,
+                ..
             } = event
             {
                 match *key {
@@ -150,17 +151,18 @@ impl EguiSFList {
             }
         }
 
-        if !ui.input().raw.dropped_files.is_empty() {
+        if !ui.input(|i| i.raw.dropped_files.is_empty()) {
             println!("files dropped");
 
             let dropped_files = ui
-                .input()
-                .raw
-                .dropped_files
-                .clone()
-                .iter()
-                .map(|file| file.path.as_ref().unwrap().clone())
-                .collect::<Vec<PathBuf>>();
+                .input(|i|
+                    i.raw
+                    .dropped_files
+                    .clone()
+                    .iter()
+                    .map(|file| file.path.as_ref().unwrap().clone())
+                    .collect::<Vec<PathBuf>>()
+                );
 
             for file in dropped_files {
                 if let Err(error) = self.add_item(file.clone()) {
@@ -245,12 +247,13 @@ impl EguiSFList {
         });
 
         ScrollArea::both().show(ui, |ui| {
-            let events = ui.input().events.clone();
+            let events = ui.input(|i| i.events.clone());
             for event in &events {
                 if let egui::Event::Key {
                     key,
                     modifiers,
                     pressed,
+                    ..
                 } = event
                 {
                     match *key {

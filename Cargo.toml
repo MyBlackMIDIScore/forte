@@ -4,15 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-egui = "0.20"
-eframe = "0.20"
+egui = "0.21.0"
+eframe = "0.21.3"
 proc-macro2 = "1.0.50"
-midi-toolkit-rs = { git = "https://github.com/arduano/midi-toolkit-rs", rev = "4482d61" }
+midi-toolkit-rs = { git = "https://github.com/arduano/midi-toolkit-rs", rev = "cff22ac" }
 serde = "1.0.152"
-xsynth-core = { git = "https://github.com/arduano/xsynth", branch = "linear-interp-fix" }
-xsynth-soundfonts = { git = "https://github.com/arduano/xsynth", branch = "linear-interp-fix" }
-egui_extras = "0.20"
-egui_file = "0.7.0"
+xsynth-core = { git = "https://github.com/arduano/xsynth", rev = "ba1bf94" }
+xsynth-soundfonts = { git = "https://github.com/arduano/xsynth", rev = "ba1bf94" }
+egui_extras = "0.21.0"
+egui_file = "0.8.0"
 rand = "0.8.5"
 num-format = "0.4.4"
 crossbeam-channel = "0.5.6"
@@ -25,4 +25,4 @@ tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
 tracing-appender = "0.2.2"
 image = "0.24.5"
-open = "3.4.0"
+open = "4.0.1"
