@@ -130,8 +130,8 @@ impl SynthSettings {
                 }
             }
             SynthCfgType::PerChannel => {
-                for i in 0..16 {
-                    vec[i].soundfonts = self.individual_settings[i].soundfonts.clone();
+                for (idx, c) in vec.iter_mut().enumerate() {
+                    c.soundfonts = self.individual_settings[idx].soundfonts.clone();
                 }
             }
         }
