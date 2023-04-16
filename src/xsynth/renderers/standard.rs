@@ -31,7 +31,7 @@ impl ForteStandardRenderer {
         );
 
         for _ in 0..instances {
-            for ch in state.synth_settings.channel_settings.clone() {
+            for ch in state.synth_settings.unify() {
                 let pool = if ch.use_threadpool {
                     Some(Arc::new(rayon::ThreadPoolBuilder::new().build().unwrap()))
                 } else {
