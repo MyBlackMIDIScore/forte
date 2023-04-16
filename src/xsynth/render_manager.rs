@@ -34,7 +34,7 @@ impl RenderThreadManager {
         let soundfonts = Arc::new(RwLock::new(HashMap::new()));
 
         let mut soundfonts_paths: Vec<ForteSFListItem> = vec![];
-        for channel in state.synth_settings.channel_settings.clone() {
+        for channel in state.synth_settings.unify() {
             for sf in channel.soundfonts {
                 if !soundfonts_paths
                     .clone()

@@ -113,16 +113,16 @@ impl MIDIRenderer {
                 RenderMode::Standard => Box::new(ForteStandardRenderer::new(state, 1)),
             };
 
-            for (i, ch) in state
-                .synth_settings
-                .channel_settings
-                .clone()
-                .into_iter()
-                .enumerate()
-            {
+            for (i, ch) in state.synth_settings.unify().into_iter().enumerate() {
+                let layers = if ch.layer_limit_enabled {
+                    Some(ch.layer_limit)
+                } else {
+                    None
+                };
+
                 renderer.send_event(SynthEvent::ChannelConfig(
                     i as u32,
-                    ChannelConfigEvent::SetLayerCount(ch.layer_limit),
+                    ChannelConfigEvent::SetLayerCount(layers),
                 ));
             }
 
@@ -194,13 +194,7 @@ impl MIDIRenderer {
         info!("Applying soundfonts to renderer");
         let soundfonts = self.soundfonts.read().unwrap();
 
-        for (i, ch) in state
-            .synth_settings
-            .channel_settings
-            .clone()
-            .into_iter()
-            .enumerate()
-        {
+        for (i, ch) in state.synth_settings.unify().into_iter().enumerate() {
             let mut sfs: Vec<Arc<dyn SoundfontBase>> = vec![];
             for sf in ch.soundfonts {
                 if let Some(s) = soundfonts.get(&sf.path) {

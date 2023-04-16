@@ -2,6 +2,7 @@ use crate::errors::error_message::ErrorMessage;
 use crate::settings::ForteState;
 use crate::tabs::{show_about, ForteRenderTab, ForteSynthTab, ForteTab};
 use crate::utils::set_button_spacing;
+use eframe::glow::Context;
 use std::time::Duration;
 
 use tracing::info;
@@ -15,21 +16,15 @@ pub struct ForteApp {
     synth_tab: ForteSynthTab,
 }
 
-impl Default for ForteApp {
-    fn default() -> Self {
-        Self {
-            state: Default::default(),
-
-            render_tab: ForteRenderTab::new(),
-            synth_tab: ForteSynthTab::new(),
-        }
-    }
-}
-
 impl ForteApp {
     pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
         //Self::set_font(&cc.egui_ctx);
-        Default::default()
+        let state = ForteState::load();
+        Self {
+            render_tab: ForteRenderTab::new(),
+            synth_tab: ForteSynthTab::new(&state),
+            state,
+        }
     }
 
     /*fn set_font(ctx: &egui::Context) {
@@ -102,6 +97,10 @@ impl eframe::App for ForteApp {
                 ForteTab::About => show_about(ui),
             }
         });
+    }
+
+    fn on_exit(&mut self, _gl: Option<&Context>) {
+        self.state.save().unwrap_or(());
     }
 }
 

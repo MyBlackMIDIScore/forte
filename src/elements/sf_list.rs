@@ -4,25 +4,43 @@ use crate::errors::error_types::FileLoadError;
 use egui::{containers::scroll_area::ScrollArea, Context, Ui};
 use egui_extras::{Column, TableBuilder};
 use egui_file::FileDialog;
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::path::PathBuf;
 use tracing::{info, warn};
-use xsynth_core::soundfont::SoundfontInitOptions;
+use xsynth_core::soundfont::{Interpolator, SoundfontInitOptions};
 use xsynth_soundfonts::sfz::parse::parse_tokens_resolved;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub enum SFFormat {
     Sfz,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, Copy, Debug, Serialize, Deserialize)]
+#[serde(remote = "Interpolator")]
+pub enum InterpolatorDef {
+    Nearest,
+    Linear,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(remote = "SoundfontInitOptions")]
+pub struct SoundfontInitOptionsDef {
+    pub linear_release: bool,
+    pub use_effects: bool,
+    #[serde(with = "InterpolatorDef")]
+    pub interpolator: Interpolator,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SFPref {
+    #[serde(with = "SoundfontInitOptionsDef")]
     pub init: SoundfontInitOptions,
     pub bank: u8,
     pub preset: u8,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ForteSFListItem {
     pub id: usize,
     pub enabled: bool,
@@ -42,9 +60,9 @@ pub struct EguiSFList {
 }
 
 impl EguiSFList {
-    pub fn new() -> Self {
+    pub fn new(list: Vec<ForteSFListItem>) -> Self {
         Self {
-            list: Vec::new(),
+            list,
             id_count: 0,
             file_dialog: None,
             sf_cfg_win: Vec::new(),
@@ -154,15 +172,14 @@ impl EguiSFList {
         if !ui.input(|i| i.raw.dropped_files.is_empty()) {
             println!("files dropped");
 
-            let dropped_files = ui
-                .input(|i|
-                    i.raw
+            let dropped_files = ui.input(|i| {
+                i.raw
                     .dropped_files
                     .clone()
                     .iter()
                     .map(|file| file.path.as_ref().unwrap().clone())
                     .collect::<Vec<PathBuf>>()
-                );
+            });
 
             for file in dropped_files {
                 if let Err(error) = self.add_item(file.clone()) {

@@ -201,15 +201,14 @@ impl EguiMIDIList {
         if !ui.input(|i| i.raw.dropped_files.is_empty()) {
             println!("files dropped");
 
-            let dropped_files = ui
-                .input(|i|
-                    i.raw
+            let dropped_files = ui.input(|i| {
+                i.raw
                     .dropped_files
                     .clone()
                     .iter()
                     .map(|file| file.path.as_ref().unwrap().clone())
                     .collect::<Vec<PathBuf>>()
-                );
+            });
 
             for file in dropped_files {
                 if let Err(error) = self.add_item(file.clone()) {

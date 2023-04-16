@@ -10,23 +10,19 @@ pub struct EguiChannelConfig {
 }
 
 impl EguiChannelConfig {
-    pub fn new() -> Self {
-        let def = SingleChannelSettings::default();
-
+    pub fn new(settings: &SingleChannelSettings) -> Self {
         Self {
-            limit_layers: true,
-            layer_count: def.layer_limit.unwrap_or(10),
-            init: def.channel_init_options,
-            use_threadpool: def.use_threadpool,
+            limit_layers: settings.layer_limit_enabled,
+            layer_count: settings.layer_limit,
+            init: settings.channel_init_options,
+            use_threadpool: settings.use_threadpool,
         }
     }
 
     pub fn save_to_state_settings(&self, settings: &mut SingleChannelSettings) {
         settings.channel_init_options = self.init;
-        settings.layer_limit = match self.limit_layers {
-            true => Some(self.layer_count),
-            false => None,
-        };
+        settings.layer_limit = self.layer_count;
+        settings.layer_limit_enabled = self.limit_layers;
         settings.use_threadpool = self.use_threadpool;
     }
 

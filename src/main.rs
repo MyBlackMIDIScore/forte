@@ -54,5 +54,6 @@ fn main() {
         "Forte",
         native_options,
         Box::new(|cc| Box::new(app::ForteApp::new(cc))),
-    ).unwrap();
+    )
+    .unwrap();
 }

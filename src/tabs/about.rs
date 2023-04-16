@@ -62,21 +62,17 @@ pub fn show_about(ui: &mut Ui) {
         .num_columns(2)
         .min_col_width(120.0)
         .show(ui, |ui| {
-            ui.label("Architecture:");
-            ui.label("x64");
-            ui.end_row();
-
             ui.label("Build Number:");
             let build_num = String::from_utf8_lossy(include_bytes!("../../build.number"));
             ui.label(&build_num.trim()[6..]);
             ui.end_row();
 
             ui.label("XSynth Version:");
-            ui.label("0.1.0 (Custom Patch)");
+            ui.label("0.1.0 (Commit ba1bf94)");
             ui.end_row();
 
             ui.label("MIDI Toolkit Version:");
-            ui.label("0.1.0 (Commit 4482d61)");
+            ui.label("0.1.0 (Commit cff22ac)");
             ui.end_row();
 
             ui.label("Egui Version:");

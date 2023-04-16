@@ -173,12 +173,12 @@ impl ForteRenderTab {
                             ui.heading("Actions");
 
                             ui.horizontal(|ui| {
-                                if ui.add(egui::Button::new("Render Settings").min_size(egui::Vec2::new(rect.width() / 4.0 - 5.0, 40.0))).clicked() {
+                                if ui.add_sized([rect.width() / 4.0 - ui.style().spacing.button_padding.x, 40.0], egui::Button::new("Render Settings").wrap(true)).clicked() {
                                     state.ui_state.render_settings_visible = !state.ui_state.render_settings_visible;
                                 }
 
                                 if state.ui_state.rendering {
-                                    if ui.add(egui::Button::new("Cancel").min_size(egui::Vec2::new(3.0 * rect.width() / 4.0 - 5.0, 40.0))).clicked() {
+                                    if ui.add(egui::Button::new("Cancel").min_size(egui::Vec2::new(3.0 * rect.width() / 4.0 - ui.style().spacing.button_padding.x, 40.0))).clicked() {
                                         info!("Aborting render per user request");
                                         state.ui_state.rendering = false;
                                         if let Some(mgr) = self.render_manager.as_mut() {
@@ -186,7 +186,7 @@ impl ForteRenderTab {
                                         }
                                     }
                                 } else {
-                                    if ui.add_enabled(!self.midi_list.is_empty(), egui::Button::new("Convert!").min_size(egui::Vec2::new(3.0 * rect.width() / 4.0 - 5.0, 40.0))).clicked() {
+                                    if ui.add_enabled(!self.midi_list.is_empty(), egui::Button::new("Convert!").min_size(egui::Vec2::new(3.0 * rect.width() / 4.0 - ui.style().spacing.button_padding.x, 40.0))).clicked() {
                                         let mut dialog = FileDialog::select_folder(None)
                                             .resizable(true)
                                             .show_new_folder(false)
