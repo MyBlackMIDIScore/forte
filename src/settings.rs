@@ -114,21 +114,19 @@ impl SynthSettings {
 
         match self.chcfg_type {
             SynthCfgType::Global => {
-                for i in 0..16 {
-                    vec[i] = self.global_settings.clone();
+                for c in vec.iter_mut() {
+                    *c = self.global_settings.clone();
                 }
             }
             SynthCfgType::PerChannel => {
-                for i in 0..16 {
-                    vec[i] = self.individual_settings[i].clone();
-                }
+                vec[..16].clone_from_slice(&self.individual_settings[..16]);
             }
         }
 
         match self.sfcfg_type {
             SynthCfgType::Global => {
-                for i in 0..16 {
-                    vec[i].soundfonts = self.global_settings.soundfonts.clone();
+                for c in vec.iter_mut() {
+                    c.soundfonts = self.global_settings.soundfonts.clone();
                 }
             }
             SynthCfgType::PerChannel => {

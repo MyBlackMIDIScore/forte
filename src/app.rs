@@ -100,7 +100,7 @@ impl eframe::App for ForteApp {
     }
 
     fn on_exit(&mut self, _gl: Option<&Context>) {
-        self.state.save().unwrap_or_else(|_| {});
+        self.state.save().unwrap_or({});
     }
 }
 
