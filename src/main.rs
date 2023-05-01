@@ -11,8 +11,21 @@ mod xsynth;
 
 use tracing::info;
 use tracing_subscriber::{fmt, layer::SubscriberExt};
+use std::backtrace::Backtrace;
+use std::panic;
+use std::panic::PanicInfo;
+use std::fs::File;
+use std::io::prelude::*;
 
 const ICON: &[u8; 92050] = include_bytes!("../assets/forte.png");
+
+fn panic_hook(info: &PanicInfo) {
+    let backtrace = Backtrace::force_capture();
+    let crash_text = format!("{info}\n\n{backtrace}");
+
+    let mut file = File::create("forte-crash.txt").unwrap();
+    file.write_all(crash_text.as_bytes()).unwrap_or_default();
+}
 
 fn load_icon() -> eframe::IconData {
     let (icon_rgba, icon_width, icon_height) = {
@@ -31,6 +44,8 @@ fn load_icon() -> eframe::IconData {
 }
 
 fn main() {
+    panic::set_hook(Box::new(panic_hook));
+
     let file_appender = tracing_appender::rolling::hourly("", "forte.log");
     let (file_writer, _guard) = tracing_appender::non_blocking(file_appender);
     tracing::subscriber::set_global_default(
