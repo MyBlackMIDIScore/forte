@@ -88,7 +88,10 @@ impl EguiSFList {
                             format: SFFormat::Sfz,
                             path,
                             pref: SFPref {
-                                init: Default::default(),
+                                init: SoundfontInitOptions {
+                                    interpolator: Interpolator::Linear,
+                                    ..Default::default()
+                                }
                                 bank: 0,
                                 preset: 0,
                             },
