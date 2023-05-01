@@ -9,13 +9,13 @@ mod utils;
 mod writer;
 mod xsynth;
 
-use tracing::info;
-use tracing_subscriber::{fmt, layer::SubscriberExt};
 use std::backtrace::Backtrace;
-use std::panic;
-use std::panic::PanicInfo;
 use std::fs::File;
 use std::io::prelude::*;
+use std::panic;
+use std::panic::PanicInfo;
+use tracing::info;
+use tracing_subscriber::{fmt, layer::SubscriberExt};
 
 const ICON: &[u8; 92050] = include_bytes!("../assets/forte.png");
 
