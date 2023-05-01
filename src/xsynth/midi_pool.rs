@@ -1,5 +1,5 @@
 use crate::errors::error_types::MIDIRendererError;
-use crate::settings::{Concurrency, ForteState, RenderMode};
+use crate::settings::{ForteState, RenderMode};
 use crate::writer::ForteAudioFileWriter;
 use crate::xsynth::{
     renderers::{ForteBufferedRenderer, ForteStandardRenderer, Renderer, SynthEvent},
@@ -131,33 +131,40 @@ impl MIDIRenderer {
 
         let out_filename = if let Some(filename) = midi_path.file_name() {
             if let Some(filename) = filename.to_str() {
-                let mut f = filename.to_owned();
-                f += ".wav";
-                f
+                filename.to_owned()
             } else {
-                "out.wav".to_owned()
+                "out".to_owned()
             }
         } else {
-            "out.wav".to_owned()
-        };
-
-        let mut writer = match ForteAudioFileWriter::new(state, out_filename) {
-            Ok(w) => w,
-            Err(err) => return Err(err),
+            "out".to_owned()
         };
 
         let (writer_snd, writer_rcv) = crossbeam_channel::bounded::<f32>(100);
 
         let allow_c2 = allow.clone();
-        thread::spawn(move || {
-            for sample in writer_rcv.clone() {
-                if !allow_c2.load(Ordering::Relaxed) {
-                    break;
+        let state_clone = state.clone();
+        let writer_error = Arc::new(AtomicBool::new(false));
+        let writer_errorc = writer_error.clone();
+        thread::spawn(
+            move || match ForteAudioFileWriter::new(&state_clone, out_filename) {
+                Ok(mut writer) => {
+                    for sample in writer_rcv.clone() {
+                        if !allow_c2.load(Ordering::Relaxed) {
+                            break;
+                        }
+                        writer.write_samples(sample).unwrap_or_default();
+                    }
+                    writer.finalize().unwrap_or_default();
                 }
-                writer.write_samples(sample).unwrap_or_default();
-            }
-            writer.finalize().unwrap_or_default();
-        });
+                Err(..) => writer_errorc.store(true, Ordering::Relaxed),
+            },
+        );
+        thread::sleep(std::time::Duration::from_millis(200));
+        if writer_error.load(Ordering::Relaxed) {
+            return Err(MIDIRendererError::Writer(
+                "Error creating audio writer".to_owned(),
+            ));
+        }
 
         Ok(Self {
             allow,
@@ -383,13 +390,8 @@ impl MIDIPool {
             }
         }
 
-        let max_parallel = match state.render_settings.concurrency {
-            Concurrency::None | Concurrency::ParallelTracks => 1,
-            Concurrency::ParallelMIDIs | Concurrency::Both => state.render_settings.parallel_midis,
-        };
-
         Ok(Self {
-            max_parallel,
+            max_parallel: state.render_settings.parallel_midis,
             containers,
             is_rendering: false,
         })

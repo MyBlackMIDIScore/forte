@@ -28,6 +28,8 @@ image = "0.24.5"
 open = "4.0.1"
 toml = "0.7.3"
 dirs = "5.0.0"
+vorbis_rs = "0.3.0"
+mp3lame-encoder = "0.1.1"
 
 [profile.release]
 opt-level = 3

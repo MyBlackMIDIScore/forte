@@ -173,7 +173,7 @@ impl ForteRenderTab {
                             ui.heading("Actions");
 
                             ui.horizontal(|ui| {
-                                if ui.add_sized([rect.width() / 4.0 - ui.style().spacing.button_padding.x, 40.0], egui::Button::new("Render Settings").wrap(true)).clicked() {
+                                if ui.add_sized([rect.width() / 4.0 - ui.style().spacing.button_padding.x, 40.0], egui::Button::new("Settings").wrap(true)).clicked() {
                                     state.ui_state.render_settings_visible = !state.ui_state.render_settings_visible;
                                 }
 

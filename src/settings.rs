@@ -23,26 +23,6 @@ impl From<RenderMode> for usize {
     }
 }
 
-#[derive(Default, Copy, Clone, PartialEq, Serialize, Deserialize)]
-pub enum Concurrency {
-    #[default]
-    None,
-    ParallelMIDIs,
-    ParallelTracks,
-    Both,
-}
-
-impl From<Concurrency> for usize {
-    fn from(val: Concurrency) -> Self {
-        match val {
-            Concurrency::None => 0,
-            Concurrency::ParallelMIDIs => 1,
-            Concurrency::ParallelTracks => 2,
-            Concurrency::Both => 3,
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(remote = "ChannelInitOptions", default)]
 pub struct ChannelInitOptionsDef {
@@ -147,6 +127,39 @@ pub enum ChannelCountDef {
     Stereo,
 }
 
+#[derive(PartialEq, Eq, Clone, Copy, Serialize, Deserialize, Debug)]
+pub enum PCMSampleFormat {
+    Int16,
+    Float32,
+}
+
+impl std::fmt::Display for PCMSampleFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            PCMSampleFormat::Int16 => write!(f, "16-bit integer"),
+            PCMSampleFormat::Float32 => write!(f, "32-bit float"),
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", content = "args")]
+pub enum OutputAudioFormat {
+    Pcm { format: PCMSampleFormat },
+    Vorbis { bitrate: u32 },
+    Lame { bitrate: u32 },
+}
+
+impl std::fmt::Display for OutputAudioFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            OutputAudioFormat::Pcm { .. } => write!(f, "WAV"),
+            OutputAudioFormat::Vorbis { .. } => write!(f, "OGG"),
+            OutputAudioFormat::Lame { .. } => write!(f, "MP3"),
+        }
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct RenderSettings {
@@ -155,11 +168,11 @@ pub struct RenderSettings {
     pub audio_channels: ChannelCount,
     pub use_limiter: bool,
     pub render_mode: RenderMode,
-    pub concurrency: Concurrency,
     pub vel_ignore_range: RangeInclusive<u8>,
     pub realtime_buffer_ms: f32,
-    pub output_dir: Option<PathBuf>,
     pub parallel_midis: usize,
+    pub output_dir: Option<PathBuf>,
+    pub audio_format: OutputAudioFormat,
 }
 
 impl Default for RenderSettings {
@@ -169,11 +182,13 @@ impl Default for RenderSettings {
             audio_channels: ChannelCount::Stereo,
             use_limiter: true,
             render_mode: RenderMode::Standard,
-            concurrency: Concurrency::None,
             vel_ignore_range: 0..=0,
             realtime_buffer_ms: 100.0 / 6.0,
             output_dir: None,
-            parallel_midis: 2,
+            parallel_midis: 1,
+            audio_format: OutputAudioFormat::Pcm {
+                format: PCMSampleFormat::Float32,
+            },
         }
     }
 }
@@ -211,8 +226,8 @@ impl ForteState {
     }
 
     pub fn save(&self) -> std::io::Result<()> {
-        let string = toml::to_string(self)
-            .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, ""))?;
+        let string = toml::to_string(self).unwrap();
+        //.map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, ""))?;
 
         let path = Self::get_config_path()
             .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, ""))?;

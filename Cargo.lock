@@ -143,6 +143,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc7eb209b1518d6bb87b283c20095f5228ecda460da70b44f0802523dea6da04"
 
 [[package]]
+name = "aotuv_lancer_vorbis_sys"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fccf12dee70dbae164314a8218b53744422ee37c43d2df98f402001a94556d62"
+dependencies = [
+ "cc",
+ "ogg_next_sys",
+]
+
+[[package]]
 name = "arboard"
 version = "3.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -340,6 +350,15 @@ name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
+
+[[package]]
+name = "autotools"
+version = "0.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aef8da1805e028a172334c3b680f93e71126f2327622faef2ec3d893c0a4ad77"
+dependencies = [
+ "cc",
+]
 
 [[package]]
 name = "biquad"
@@ -1040,6 +1059,7 @@ dependencies = [
  "hound",
  "image",
  "midi-toolkit-rs",
+ "mp3lame-encoder",
  "num-format",
  "open",
  "proc-macro2",
@@ -1051,6 +1071,7 @@ dependencies = [
  "tracing",
  "tracing-appender",
  "tracing-subscriber",
+ "vorbis_rs",
  "xsynth-core",
  "xsynth-soundfonts",
 ]
@@ -1614,6 +1635,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "mp3lame-encoder"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e139cfc01bed7c8d98ff74d30681ff7cccf189acb2e98cc1cc53ea5d7210f0b"
+dependencies = [
+ "libc",
+ "mp3lame-sys",
+]
+
+[[package]]
+name = "mp3lame-sys"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99896fd43ed58e957c164c5f4a1e7d8e770f358835cc6920b2eab7ab6d1a7106"
+dependencies = [
+ "autotools",
+ "cc",
+ "libc",
+]
+
+[[package]]
 name = "nanorand"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1840,6 +1882,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c92d4ddb4bd7b50d730c215ff871754d0da6b2178849f8a2a2ab69712d0c073b"
 dependencies = [
  "objc",
+]
+
+[[package]]
+name = "ogg_next_sys"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9fd1787d091b80a730629dc4234f93584c436b174560b5c95d8556551f15c9c"
+dependencies = [
+ "cc",
 ]
 
 [[package]]
@@ -2901,6 +2952,19 @@ name = "version_check"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
+
+[[package]]
+name = "vorbis_rs"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7294961c8fb25a627f40bb9948d9a79fcc66fd16259a5870aec57288ee468b9f"
+dependencies = [
+ "aotuv_lancer_vorbis_sys",
+ "errno",
+ "ogg_next_sys",
+ "thiserror",
+ "tinyvec",
+]
 
 [[package]]
 name = "waker-fn"
