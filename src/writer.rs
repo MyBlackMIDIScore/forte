@@ -14,7 +14,7 @@ pub const COMMON_BITRATES: [u32; 8] = [
 ];
 
 pub trait AudioWriter {
-    fn write_sample(&mut self, sample: f32) -> Result<(), MIDIRendererError>;
+    fn write_samples(&mut self, samples: Vec<f32>) -> Result<(), MIDIRendererError>;
     fn finalize(self: Box<Self>) -> Result<(), MIDIRendererError>;
 }
 
@@ -65,11 +65,27 @@ impl ForteAudioFileWriter {
         Ok(Self { writer })
     }
 
-    pub fn write_samples(&mut self, sample: f32) -> Result<(), MIDIRendererError> {
-        self.writer.write_sample(sample)
+    pub fn write_samples(&mut self, samples: Vec<f32>) -> Result<(), MIDIRendererError> {
+        self.writer.write_samples(samples)
     }
 
     pub fn finalize(self) -> Result<(), MIDIRendererError> {
         self.writer.finalize()
     }
+}
+
+pub fn split_stereo(vec: Vec<f32>) -> (Vec<f32>, Vec<f32>) {
+    let left_sgnl = vec
+        .iter()
+        .enumerate()
+        .filter(|&i| i.0 % 2 == 0)
+        .map(|i| *i.1)
+        .collect::<Vec<_>>();
+    let right_sgnl = vec
+        .iter()
+        .enumerate()
+        .filter(|&i| i.0 % 2 != 0)
+        .map(|i| *i.1)
+        .collect::<Vec<_>>();
+    (left_sgnl, right_sgnl)
 }

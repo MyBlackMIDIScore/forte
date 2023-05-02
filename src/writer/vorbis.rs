@@ -1,5 +1,5 @@
 use crate::errors::error_types::MIDIRendererError;
-use crate::writer::{AudioWriter, COMMON_SAMPLE_RATES};
+use crate::writer::{split_stereo, AudioWriter, COMMON_SAMPLE_RATES};
 use rand;
 use std::fs::File;
 use std::num::{NonZeroU32, NonZeroU8};
@@ -7,8 +7,8 @@ use std::path::PathBuf;
 use vorbis_rs::{VorbisBitrateManagementStrategy, VorbisEncoder};
 
 pub struct VorbisFileWriter {
+    channels: u16,
     encoder: VorbisEncoder<File>,
-    cache: Option<f32>,
 }
 
 impl VorbisFileWriter {
@@ -38,24 +38,23 @@ impl VorbisFileWriter {
             Err(err) => return Err(MIDIRendererError::Writer(err.to_string())),
         };
 
-        Ok(Self {
-            encoder,
-            cache: None,
-        })
+        Ok(Self { channels, encoder })
     }
 }
 
 impl AudioWriter for VorbisFileWriter {
-    fn write_sample(&mut self, sample: f32) -> Result<(), MIDIRendererError> {
-        // Stereo hardcoded
-        if let Some(cache) = self.cache {
+    fn write_samples(&mut self, samples: Vec<f32>) -> Result<(), MIDIRendererError> {
+        if self.channels == 1 {
             self.encoder
-                .encode_audio_block([&[cache], &[sample]])
+                .encode_audio_block([&samples])
                 .map_err(|e| MIDIRendererError::Writer(e.to_string()))?;
-            self.cache = None;
         } else {
-            self.cache = Some(sample);
+            let (left_sgnl, right_sgnl) = split_stereo(samples);
+            self.encoder
+                .encode_audio_block([&left_sgnl, &right_sgnl])
+                .map_err(|e| MIDIRendererError::Writer(e.to_string()))?;
         }
+
         Ok(())
     }
 

@@ -91,7 +91,7 @@ impl EguiSFList {
                                 init: SoundfontInitOptions {
                                     interpolator: Interpolator::Linear,
                                     ..Default::default()
-                                }
+                                },
                                 bank: 0,
                                 preset: 0,
                             },

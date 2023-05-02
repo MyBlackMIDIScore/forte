@@ -53,7 +53,7 @@ struct MIDIRenderer {
 
     receiver: Receiver<Delta<f64, EventBatch<Event>>>,
     renderer: Box<dyn Renderer>,
-    writer: Sender<f32>,
+    writer: Sender<Vec<f32>>,
 
     limiter: Option<VolumeLimiter>,
     audio_params: AudioStreamParams,
@@ -139,7 +139,7 @@ impl MIDIRenderer {
             "out".to_owned()
         };
 
-        let (writer_snd, writer_rcv) = crossbeam_channel::bounded::<f32>(100);
+        let (writer_snd, writer_rcv) = crossbeam_channel::bounded::<Vec<f32>>(100);
 
         let allow_c2 = allow.clone();
         let state_clone = state.clone();
@@ -216,7 +216,7 @@ impl MIDIRenderer {
     }
 
     fn render_batch(&mut self, event_time: f64, update_stats: impl FnOnce(f64, u64) + Clone) {
-        let max_batch_time = 0.01;
+        let max_batch_time = 0.1;
         if event_time > max_batch_time {
             let mut remaining_time = event_time;
             loop {
@@ -243,9 +243,10 @@ impl MIDIRenderer {
                 limiter.limit(&mut self.output_vec);
             }
 
-            for sample in self.output_vec.drain(..) {
-                self.writer.send(sample).unwrap_or_default();
-            }
+            self.writer
+                .send(self.output_vec.clone())
+                .unwrap_or_default();
+            self.output_vec.clear();
         }
     }
 
@@ -271,9 +272,10 @@ impl MIDIRenderer {
                 limiter.limit(&mut self.output_vec);
             }
 
-            for sample in self.output_vec.drain(..) {
-                self.writer.send(sample).unwrap_or_default();
-            }
+            self.writer
+                .send(self.output_vec.clone())
+                .unwrap_or_default();
+            self.output_vec.clear();
         }
         self.status
             .store(MIDIRendererStatus::Finished, Ordering::Relaxed);
@@ -295,6 +297,7 @@ impl MIDIRenderer {
             }
 
             for event in batch.iter_inner() {
+                (update_stats)(self.time, self.renderer.voice_count());
                 match event {
                     Event::NoteOn(e) => {
                         if !self.ignore_range.contains(&e.velocity) {

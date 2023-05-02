@@ -41,20 +41,25 @@ impl PCMFileWriter {
 }
 
 impl AudioWriter for PCMFileWriter {
-    fn write_sample(&mut self, sample: f32) -> Result<(), MIDIRendererError> {
+    fn write_samples(&mut self, samples: Vec<f32>) -> Result<(), MIDIRendererError> {
         match self.format {
             PCMSampleFormat::Int16 => {
-                let sample = sample * std::i16::MAX as f32;
-                match self.writer.write_sample(sample as i16) {
-                    Ok(..) => Ok(()),
-                    Err(err) => Err(MIDIRendererError::Writer(err.to_string())),
+                for sample in samples {
+                    let sample = (sample * std::i16::MAX as f32) as i16;
+                    self.writer
+                        .write_sample(sample)
+                        .map_err(|err| MIDIRendererError::Writer(err.to_string()))?
                 }
             }
-            PCMSampleFormat::Float32 => match self.writer.write_sample(sample) {
-                Ok(..) => Ok(()),
-                Err(err) => Err(MIDIRendererError::Writer(err.to_string())),
-            },
+            PCMSampleFormat::Float32 => {
+                for sample in samples {
+                    self.writer
+                        .write_sample(sample)
+                        .map_err(|err| MIDIRendererError::Writer(err.to_string()))?
+                }
+            }
         }
+        Ok(())
     }
 
     fn finalize(self: Box<Self>) -> Result<(), MIDIRendererError> {

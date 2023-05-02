@@ -1,14 +1,14 @@
 use crate::errors::error_types::MIDIRendererError;
-use crate::writer::AudioWriter;
-use mp3lame_encoder::{Birtate, Builder, DualPcm, Encoder, FlushNoGap};
+use crate::writer::{split_stereo, AudioWriter};
+use mp3lame_encoder::{Birtate, Builder, DualPcm, Encoder, FlushNoGap, MonoPcm};
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
 
 pub struct LameFileWriter {
+    channels: u16,
     encoder: Encoder,
     file: File,
-    cache: Option<f32>,
 }
 
 impl LameFileWriter {
@@ -45,9 +45,9 @@ impl LameFileWriter {
         let file = File::create(filepath).map_err(|e| MIDIRendererError::Writer(e.to_string()))?;
 
         Ok(Self {
+            channels,
             encoder,
             file,
-            cache: None,
         })
     }
 
@@ -67,31 +67,35 @@ impl LameFileWriter {
 }
 
 impl AudioWriter for LameFileWriter {
-    fn write_sample(&mut self, sample: f32) -> Result<(), MIDIRendererError> {
-        // Stereo hardcoded
-        if let Some(cache) = self.cache {
-            let mut out = Vec::new();
+    fn write_samples(&mut self, samples: Vec<f32>) -> Result<(), MIDIRendererError> {
+        let mut out = Vec::new();
+        let encoded_size = if self.channels == 1 {
+            let input = MonoPcm(&samples);
+            out.reserve(mp3lame_encoder::max_required_buffer_size(input.0.len()));
+            self.encoder
+                .encode(input, out.spare_capacity_mut())
+                .map_err(|e| MIDIRendererError::Writer(e.to_string()))?
+        } else {
+            let (left_sgnl, right_sgnl) = split_stereo(samples);
             let input = DualPcm {
-                left: &[cache],
-                right: &[sample],
+                left: &left_sgnl,
+                right: &right_sgnl,
             };
 
             out.reserve(mp3lame_encoder::max_required_buffer_size(input.left.len()));
-            let encoded_size = self
-                .encoder
+            self.encoder
                 .encode(input, out.spare_capacity_mut())
-                .map_err(|e| MIDIRendererError::Writer(e.to_string()))?;
-            unsafe {
-                out.set_len(out.len().wrapping_add(encoded_size));
-            }
+                .map_err(|e| MIDIRendererError::Writer(e.to_string()))?
+        };
 
-            self.file
-                .write_all(&out)
-                .map_err(|e| MIDIRendererError::Writer(e.to_string()))?;
-            self.cache = None;
-        } else {
-            self.cache = Some(sample);
+        unsafe {
+            out.set_len(out.len().wrapping_add(encoded_size));
         }
+
+        self.file
+            .write_all(&out)
+            .map_err(|e| MIDIRendererError::Writer(e.to_string()))?;
+
         Ok(())
     }
 
