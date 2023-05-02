@@ -64,9 +64,8 @@ impl AudioWriter for PCMFileWriter {
 
     fn finalize(self: Box<Self>) -> Result<(), MIDIRendererError> {
         info!("Finalizing audio file");
-        match self.writer.finalize() {
-            Ok(..) => Ok(()),
-            Err(err) => Err(MIDIRendererError::Writer(err.to_string())),
-        }
+        self.writer
+            .finalize()
+            .map_err(|err| MIDIRendererError::Writer(err.to_string()))
     }
 }

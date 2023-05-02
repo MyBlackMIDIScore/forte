@@ -53,10 +53,7 @@ impl RenderThreadManager {
 
         let soundfont_pool = SoundfontPool::new(soundfonts_paths, soundfonts.clone(), audio_params);
 
-        let midi_pool = match MIDIPool::new(state, midis, soundfonts) {
-            Ok(pool) => pool,
-            Err(err) => return Err(err),
-        };
+        let midi_pool = MIDIPool::new(state, midis, soundfonts)?;
 
         Ok(Self {
             soundfont_pool,

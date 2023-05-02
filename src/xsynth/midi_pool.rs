@@ -78,13 +78,10 @@ impl MIDIRenderer {
             state.render_settings.audio_channels,
         );
 
-        let midi = match MIDIFile::open(midi_path.clone(), None) {
-            Ok(m) => m,
-            Err(err) => {
-                error!("Error loading MIDI: {:?}", err);
-                return Err(MIDIRendererError::Load(err));
-            }
-        };
+        let midi = MIDIFile::open(midi_path.clone(), None).map_err(|err| {
+            error!("Error loading MIDI: {:?}", err);
+            MIDIRendererError::Load(err)
+        })?;
 
         let (receiver, renderer) = {
             let ppq = midi.ppq();

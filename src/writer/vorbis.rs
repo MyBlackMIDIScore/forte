@@ -18,12 +18,10 @@ impl VorbisFileWriter {
         bitrate: u32,
         filepath: PathBuf,
     ) -> Result<Self, MIDIRendererError> {
-        let file = match File::create(filepath) {
-            Ok(file) => file,
-            Err(err) => return Err(MIDIRendererError::Writer(err.to_string())),
-        };
+        let file =
+            File::create(filepath).map_err(|err| MIDIRendererError::Writer(err.to_string()))?;
 
-        let encoder = match VorbisEncoder::new(
+        let encoder = VorbisEncoder::new(
             rand::random(),
             [("", ""); 0],
             NonZeroU32::new(sample_rate.max(COMMON_SAMPLE_RATES[0])).unwrap(),
@@ -33,10 +31,8 @@ impl VorbisFileWriter {
             },
             None,
             file,
-        ) {
-            Ok(encoder) => encoder,
-            Err(err) => return Err(MIDIRendererError::Writer(err.to_string())),
-        };
+        )
+        .map_err(|err| MIDIRendererError::Writer(err.to_string()))?;
 
         Ok(Self { channels, encoder })
     }
