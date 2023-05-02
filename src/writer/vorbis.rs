@@ -4,6 +4,7 @@ use rand;
 use std::fs::File;
 use std::num::{NonZeroU32, NonZeroU8};
 use std::path::PathBuf;
+use tracing::{error, info};
 use vorbis_rs::{VorbisBitrateManagementStrategy, VorbisEncoder};
 
 pub struct VorbisFileWriter {
@@ -21,6 +22,7 @@ impl VorbisFileWriter {
         let file =
             File::create(filepath).map_err(|err| MIDIRendererError::Writer(err.to_string()))?;
 
+        info!("Creating new Vorbis encoder");
         let encoder = VorbisEncoder::new(
             rand::random(),
             [("", ""); 0],
@@ -32,7 +34,10 @@ impl VorbisFileWriter {
             None,
             file,
         )
-        .map_err(|err| MIDIRendererError::Writer(err.to_string()))?;
+        .map_err(|err| {
+            error!("Unable to create Vorbis encoder: {}", err.to_string());
+            MIDIRendererError::Writer(err.to_string())
+        })?;
 
         Ok(Self { channels, encoder })
     }
@@ -55,6 +60,7 @@ impl AudioWriter for VorbisFileWriter {
     }
 
     fn finalize(self: Box<Self>) -> Result<(), MIDIRendererError> {
+        info!("Finalizing Vorbis audio file");
         self.encoder
             .finish()
             .map_err(|e| MIDIRendererError::Writer(e.to_string()))?;

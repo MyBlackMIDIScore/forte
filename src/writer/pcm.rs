@@ -17,7 +17,7 @@ impl PCMFileWriter {
         format: PCMSampleFormat,
         filepath: PathBuf,
     ) -> Result<Self, MIDIRendererError> {
-        info!("Creating new audio file writer");
+        info!("Creating new PCM writer");
         let (bits_per_sample, sample_format) = match format {
             PCMSampleFormat::Int16 => (16, SampleFormat::Int),
             PCMSampleFormat::Float32 => (32, SampleFormat::Float),
@@ -33,7 +33,7 @@ impl PCMFileWriter {
         match WavWriter::create(filepath, spec) {
             Ok(writer) => Ok(Self { writer, format }),
             Err(err) => {
-                error!("Writer error: {}", &err.to_string());
+                error!("Unable to create PCM writer: {}", &err.to_string());
                 Err(MIDIRendererError::Writer(err.to_string()))
             }
         }
@@ -63,7 +63,7 @@ impl AudioWriter for PCMFileWriter {
     }
 
     fn finalize(self: Box<Self>) -> Result<(), MIDIRendererError> {
-        info!("Finalizing audio file");
+        info!("Finalizing PCM audio file");
         self.writer
             .finalize()
             .map_err(|err| MIDIRendererError::Writer(err.to_string()))

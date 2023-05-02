@@ -4,6 +4,7 @@ use mp3lame_encoder::{Birtate, Builder, DualPcm, Encoder, FlushNoGap, MonoPcm};
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
+use tracing::{error, info};
 
 pub struct LameFileWriter {
     channels: u16,
@@ -21,11 +22,14 @@ impl LameFileWriter {
         let mut encoder = match Builder::new() {
             Some(e) => e,
             None => {
+                error!("Unable to create LAME encoder");
                 return Err(MIDIRendererError::Writer(
                     "Unable to create LAME encoder".to_owned(),
-                ))
+                ));
             }
         };
+        info!("Creating new LAME encoder");
+
         encoder
             .set_num_channels(channels as u8)
             .map_err(|e| MIDIRendererError::Writer(e.to_string()))?;
@@ -100,6 +104,7 @@ impl AudioWriter for LameFileWriter {
     }
 
     fn finalize(mut self: Box<Self>) -> Result<(), MIDIRendererError> {
+        info!("Finalizing LAME audio file");
         let mut out = Vec::new();
         out.reserve(mp3lame_encoder::max_required_buffer_size(1));
         let encoded_size = self
