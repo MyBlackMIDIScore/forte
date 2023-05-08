@@ -80,7 +80,7 @@ impl AudioWriter for LameFileWriter {
                 .encode(input, out.spare_capacity_mut())
                 .map_err(|e| MIDIRendererError::Writer(e.to_string()))?
         } else {
-            let (left_sgnl, right_sgnl) = split_stereo(samples);
+            let (left_sgnl, right_sgnl) = split_stereo(&samples);
             let input = DualPcm {
                 left: &left_sgnl,
                 right: &right_sgnl,

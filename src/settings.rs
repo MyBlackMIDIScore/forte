@@ -1,3 +1,4 @@
+use crate::dsp::DSPSettings;
 use crate::elements::sf_list::ForteSFListItem;
 use crate::tabs::ForteTab;
 use crate::tabs::SynthCfgType;
@@ -166,7 +167,7 @@ pub struct RenderSettings {
     pub sample_rate: u32,
     #[serde(with = "ChannelCountDef")]
     pub audio_channels: ChannelCount,
-    pub use_limiter: bool,
+    pub dsp_settings: DSPSettings,
     pub render_mode: RenderMode,
     pub vel_ignore_range: RangeInclusive<u8>,
     pub realtime_buffer_ms: f32,
@@ -180,7 +181,7 @@ impl Default for RenderSettings {
         Self {
             sample_rate: 48000,
             audio_channels: ChannelCount::Stereo,
-            use_limiter: true,
+            dsp_settings: Default::default(),
             render_mode: RenderMode::Standard,
             vel_ignore_range: 0..=0,
             realtime_buffer_ms: 100.0 / 6.0,

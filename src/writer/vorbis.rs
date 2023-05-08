@@ -50,7 +50,7 @@ impl AudioWriter for VorbisFileWriter {
                 .encode_audio_block([&samples])
                 .map_err(|e| MIDIRendererError::Writer(e.to_string()))?;
         } else {
-            let (left_sgnl, right_sgnl) = split_stereo(samples);
+            let (left_sgnl, right_sgnl) = split_stereo(&samples);
             self.encoder
                 .encode_audio_block([&left_sgnl, &right_sgnl])
                 .map_err(|e| MIDIRendererError::Writer(e.to_string()))?;

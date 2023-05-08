@@ -28,7 +28,6 @@ use std::sync::{
 use std::thread;
 use tracing::{error, info};
 use xsynth_core::channel::{ChannelAudioEvent, ChannelConfigEvent, ControlEvent};
-use xsynth_core::effects::VolumeLimiter;
 use xsynth_core::soundfont::{SampleSoundfont, SoundfontBase};
 use xsynth_core::AudioStreamParams;
 
@@ -55,7 +54,6 @@ struct MIDIRenderer {
     renderer: Box<dyn Renderer>,
     writer: Sender<Vec<f32>>,
 
-    limiter: Option<VolumeLimiter>,
     audio_params: AudioStreamParams,
     ignore_range: RangeInclusive<u8>,
 
@@ -172,11 +170,6 @@ impl MIDIRenderer {
             renderer,
             writer: writer_snd,
 
-            limiter: if state.render_settings.use_limiter {
-                Some(VolumeLimiter::new(audio_params.channels.count()))
-            } else {
-                None
-            },
             audio_params,
             ignore_range: state.render_settings.vel_ignore_range.clone(),
 
@@ -236,14 +229,9 @@ impl MIDIRenderer {
             self.time += event_time;
             (update_stats)(self.time, self.renderer.voice_count());
 
-            if let Some(limiter) = &mut self.limiter {
-                limiter.limit(&mut self.output_vec);
-            }
-
             self.writer
-                .send(self.output_vec.clone())
+                .send(self.output_vec.drain(..).collect::<Vec<f32>>())
                 .unwrap_or_default();
-            self.output_vec.clear();
         }
     }
 
@@ -265,14 +253,9 @@ impl MIDIRenderer {
                 break;
             }
 
-            if let Some(limiter) = &mut self.limiter {
-                limiter.limit(&mut self.output_vec);
-            }
-
             self.writer
-                .send(self.output_vec.clone())
+                .send(self.output_vec.drain(..).collect::<Vec<f32>>())
                 .unwrap_or_default();
-            self.output_vec.clear();
         }
         self.status
             .store(MIDIRendererStatus::Finished, Ordering::Relaxed);

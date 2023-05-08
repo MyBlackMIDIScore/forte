@@ -1,3 +1,4 @@
+use crate::dsp::ForteAudioDSP;
 use crate::errors::error_types::MIDIRendererError;
 use crate::settings::{ForteState, OutputAudioFormat};
 
@@ -20,6 +21,9 @@ pub trait AudioWriter {
 
 pub struct ForteAudioFileWriter {
     writer: Box<dyn AudioWriter>,
+    dsp: ForteAudioDSP,
+    offset: usize,
+    offset_tmp: usize,
 }
 
 impl ForteAudioFileWriter {
@@ -62,19 +66,43 @@ impl ForteAudioFileWriter {
             )?),
         };
 
-        Ok(Self { writer })
+        let dsp = ForteAudioDSP::new(
+            state.render_settings.audio_channels.count(),
+            state.render_settings.sample_rate,
+            state.render_settings.dsp_settings,
+        );
+
+        Ok(Self {
+            writer,
+            offset: dsp.offset(),
+            offset_tmp: dsp.offset(),
+            dsp,
+        })
     }
 
-    pub fn write_samples(&mut self, samples: Vec<f32>) -> Result<(), MIDIRendererError> {
+    pub fn write_samples(&mut self, mut samples: Vec<f32>) -> Result<(), MIDIRendererError> {
+        if self.offset_tmp > 0 {
+            let len = samples.len();
+            if len >= self.offset_tmp {
+                samples = samples[..self.offset_tmp].to_vec();
+                self.offset_tmp = 0;
+            } else {
+                self.offset_tmp -= len;
+                return Ok(());
+            }
+        }
+        self.dsp.process(&mut samples);
         self.writer.write_samples(samples)
     }
 
-    pub fn finalize(self) -> Result<(), MIDIRendererError> {
+    pub fn finalize(mut self) -> Result<(), MIDIRendererError> {
+        let offset_samples = vec![0.0; self.offset];
+        self.writer.write_samples(offset_samples)?;
         self.writer.finalize()
     }
 }
 
-pub fn split_stereo(vec: Vec<f32>) -> (Vec<f32>, Vec<f32>) {
+pub fn split_stereo(vec: &[f32]) -> (Vec<f32>, Vec<f32>) {
     let left_sgnl = vec
         .iter()
         .enumerate()
