@@ -231,6 +231,8 @@ pub fn show_render_settings(ui: &mut Ui, state: &mut ForteState) {
             }
         });
 
+    ui.add_space(5.0);
+
     ui.heading("DSP Settings");
     egui::Grid::new("dsp_settings_grid")
         .num_columns(2)

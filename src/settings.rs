@@ -53,12 +53,11 @@ impl Default for SingleChannelSettings {
     fn default() -> Self {
         let channel_init_options = ChannelInitOptions {
             fade_out_killing: true,
-            //..Default::default()
         };
 
         Self {
             channel_init_options,
-            layer_limit: 32,
+            layer_limit: 16,
             layer_limit_enabled: true,
             soundfonts: Vec::new(),
             use_threadpool: true,
