@@ -179,7 +179,7 @@ impl ForteRenderTab {
 
                                 if state.ui_state.rendering {
                                     if ui.add(egui::Button::new("Cancel").min_size(egui::Vec2::new(3.0 * rect.width() / 4.0 - ui.style().spacing.button_padding.x, 40.0))).clicked() {
-                                        self.cancel_render();
+                                        self.cancel_render(state);
                                     }
                                 } else {
                                     if ui.add_enabled(!self.midi_list.is_empty(), egui::Button::new("Convert!").min_size(egui::Vec2::new(3.0 * rect.width() / 4.0 - ui.style().spacing.button_padding.x, 40.0))).clicked() {
@@ -246,9 +246,9 @@ impl ForteRenderTab {
         });
     }
 
-    pub fn cancel_render(&mut self) {
+    pub fn cancel_render(&mut self, state: &mut ForteState) {
         info!("Aborting render per user request");
-        self.state.ui_state.rendering = false;
+        state.ui_state.rendering = false;
         if let Some(mgr) = self.render_manager.as_mut() {
             mgr.cancel();
         }
