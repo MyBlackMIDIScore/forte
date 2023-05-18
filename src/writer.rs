@@ -22,8 +22,6 @@ pub trait AudioWriter {
 pub struct ForteAudioFileWriter {
     writer: Box<dyn AudioWriter>,
     dsp: ForteAudioDSP,
-    offset: usize,
-    offset_tmp: usize,
 }
 
 impl ForteAudioFileWriter {
@@ -74,30 +72,16 @@ impl ForteAudioFileWriter {
 
         Ok(Self {
             writer,
-            offset: dsp.offset(),
-            offset_tmp: dsp.offset(),
             dsp,
         })
     }
 
     pub fn write_samples(&mut self, mut samples: Vec<f32>) -> Result<(), MIDIRendererError> {
-        if self.offset_tmp > 0 {
-            let len = samples.len();
-            if len >= self.offset_tmp {
-                samples = samples[..self.offset_tmp].to_vec();
-                self.offset_tmp = 0;
-            } else {
-                self.offset_tmp -= len;
-                return Ok(());
-            }
-        }
         self.dsp.process(&mut samples);
         self.writer.write_samples(samples)
     }
 
-    pub fn finalize(mut self) -> Result<(), MIDIRendererError> {
-        let offset_samples = vec![0.0; self.offset];
-        self.writer.write_samples(offset_samples)?;
+    pub fn finalize(self) -> Result<(), MIDIRendererError> {
         self.writer.finalize()
     }
 }

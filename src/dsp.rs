@@ -8,8 +8,6 @@ pub struct DSPLimiterSettings {
     pub enabled: bool,
     pub attack_ms: u16,
     pub release_ms: u16,
-    pub threshold: f32,
-    pub lookahead_time_ms: u16,
 }
 
 impl Default for DSPLimiterSettings {
@@ -17,9 +15,7 @@ impl Default for DSPLimiterSettings {
         Self {
             enabled: true,
             attack_ms: 30,
-            release_ms: 100,
-            threshold: 0.0,
-            lookahead_time_ms: 5,
+            release_ms: 80,
         }
     }
 }
@@ -32,22 +28,15 @@ pub struct DSPSettings {
 
 pub struct ForteAudioDSP {
     channels: u16,
-    offset: usize,
-    limiter: Option<Vec<limiter::LookaheadLimiter>>,
+    limiter: Option<Vec<limiter::AudioLimiter>>,
 }
 
 impl ForteAudioDSP {
-    pub fn new(channels: u16, sample_rate: u32, settings: DSPSettings) -> Self {
-        let mut offset = 0;
-
+    pub fn new(channels: u16, _sample_rate: u32, settings: DSPSettings) -> Self {
         let limiter = if settings.limiter.enabled {
             let mut v = Vec::new();
-            for i in 0..channels {
-                let l = limiter::LookaheadLimiter::new(sample_rate, settings.limiter);
-                if i == 0 {
-                    offset += l.offset();
-                }
-                v.push(l);
+            for _ in 0..channels {
+                v.push(limiter::AudioLimiter::new(settings.limiter));
             }
             Some(v)
         } else {
@@ -56,13 +45,8 @@ impl ForteAudioDSP {
 
         Self {
             channels,
-            offset,
             limiter,
         }
-    }
-
-    pub fn offset(&self) -> usize {
-        self.offset
     }
 
     pub fn process(&mut self, vec: &mut [f32]) {

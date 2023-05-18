@@ -262,25 +262,5 @@ pub fn show_render_settings(ui: &mut Ui, state: &mut ForteState) {
                     .clamp_range(10..=200),
             );
             ui.end_row();
-
-            ui.label("Limiter Lookahead (ms): ");
-            ui.add_enabled(
-                !state.ui_state.rendering && state.render_settings.dsp_settings.limiter.enabled,
-                egui::DragValue::new(
-                    &mut state.render_settings.dsp_settings.limiter.lookahead_time_ms,
-                )
-                .speed(0.2)
-                .clamp_range(1..=10),
-            );
-            ui.end_row();
-
-            ui.label("Limiter Threshold (dB): ");
-            ui.add_enabled(
-                !state.ui_state.rendering && state.render_settings.dsp_settings.limiter.enabled,
-                egui::DragValue::new(&mut state.render_settings.dsp_settings.limiter.threshold)
-                    .speed(0.2)
-                    .clamp_range(-80.0..=0.0),
-            );
-            ui.end_row();
         });
 }

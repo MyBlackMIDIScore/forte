@@ -30,6 +30,7 @@ toml = "0.7.3"
 dirs = "5.0.0"
 vorbis_rs = "0.3.0"
 mp3lame-encoder = "0.1.1"
+fundsp = "0.14.0"
 
 [profile.release]
 opt-level = 3
