@@ -179,11 +179,7 @@ impl ForteRenderTab {
 
                                 if state.ui_state.rendering {
                                     if ui.add(egui::Button::new("Cancel").min_size(egui::Vec2::new(3.0 * rect.width() / 4.0 - ui.style().spacing.button_padding.x, 40.0))).clicked() {
-                                        info!("Aborting render per user request");
-                                        state.ui_state.rendering = false;
-                                        if let Some(mgr) = self.render_manager.as_mut() {
-                                            mgr.cancel();
-                                        }
+                                        self.cancel_render();
                                     }
                                 } else {
                                     if ui.add_enabled(!self.midi_list.is_empty(), egui::Button::new("Convert!").min_size(egui::Vec2::new(3.0 * rect.width() / 4.0 - ui.style().spacing.button_padding.x, 40.0))).clicked() {
@@ -248,5 +244,13 @@ impl ForteRenderTab {
                 self.midi_list.show(ui);
             });
         });
+    }
+
+    pub fn cancel_render(&mut self) {
+        info!("Aborting render per user request");
+        self.state.ui_state.rendering = false;
+        if let Some(mgr) = self.render_manager.as_mut() {
+            mgr.cancel();
+        }
     }
 }

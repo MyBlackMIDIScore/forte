@@ -100,6 +100,7 @@ impl eframe::App for ForteApp {
     }
 
     fn on_exit(&mut self, _gl: Option<&Context>) {
+        self.render_tab.cancel_render();
         self.state.save().unwrap_or(());
     }
 }
