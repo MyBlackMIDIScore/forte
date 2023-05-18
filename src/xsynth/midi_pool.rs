@@ -185,7 +185,6 @@ impl MIDIRenderer {
 
     pub fn get_status(&self) -> Arc<Atomic<MIDIRendererStatus>> {
         self.status.clone()
-
     }
 
     pub fn set_soundfonts(&mut self, state: &ForteState) {

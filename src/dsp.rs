@@ -43,10 +43,7 @@ impl ForteAudioDSP {
             None
         };
 
-        Self {
-            channels,
-            limiter,
-        }
+        Self { channels, limiter }
     }
 
     pub fn process(&mut self, vec: &mut [f32]) {

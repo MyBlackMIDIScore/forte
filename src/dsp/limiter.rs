@@ -1,5 +1,5 @@
-use fundsp::hacker32::*;
 use super::DSPLimiterSettings;
+use fundsp::hacker32::*;
 
 pub struct AudioLimiter {
     limiter: An<Limiter<f32, U1, (f32, f32)>>,
@@ -8,7 +8,10 @@ pub struct AudioLimiter {
 impl AudioLimiter {
     pub fn new(settings: DSPLimiterSettings) -> Self {
         Self {
-            limiter: limiter((settings.attack_ms as f32 / 1000.0, settings.release_ms as f32 / 1000.0)),
+            limiter: limiter((
+                settings.attack_ms as f32 / 1000.0,
+                settings.release_ms as f32 / 1000.0,
+            )),
         }
     }
 

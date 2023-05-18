@@ -70,10 +70,7 @@ impl ForteAudioFileWriter {
             state.render_settings.dsp_settings,
         );
 
-        Ok(Self {
-            writer,
-            dsp,
-        })
+        Ok(Self { writer, dsp })
     }
 
     pub fn write_samples(&mut self, mut samples: Vec<f32>) -> Result<(), MIDIRendererError> {
