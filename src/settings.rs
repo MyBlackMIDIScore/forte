@@ -198,8 +198,10 @@ impl Default for RenderSettings {
 pub struct UiState {
     pub tab: ForteTab,
     pub rendering: bool,
-    pub loading_dialog: Option<(String, f32)>,
     pub render_settings_visible: bool,
+    pub midi_select_last_path: Option<PathBuf>,
+    pub output_select_last_path: Option<PathBuf>,
+    pub sf_select_last_path: Option<PathBuf>,
 }
 
 #[derive(Clone, Default, Serialize, Deserialize)]

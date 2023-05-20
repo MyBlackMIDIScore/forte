@@ -111,7 +111,7 @@ impl ForteRenderTab {
                                         };
                                         let filter = Box::new(filter);
 
-                                        let mut dialog = FileDialog::open_file(None)
+                                        let mut dialog = FileDialog::open_file(state.ui_state.midi_select_last_path.clone())
                                         .resizable(true)
                                         .show_new_folder(false)
                                         .show_rename(false)
@@ -120,7 +120,7 @@ impl ForteRenderTab {
                                         self.file_dialog = Some(dialog);
                                     }
                                     if ui.add(egui::Button::new("Add Folder").min_size(egui::Vec2::new(rect.width() / 2.0 - 5.0, 18.0))).clicked() {
-                                        let mut dialog = FileDialog::select_folder(None)
+                                        let mut dialog = FileDialog::select_folder(state.ui_state.midi_select_last_path.clone())
                                         .resizable(true)
                                         .show_new_folder(false)
                                         .show_rename(false);
@@ -142,6 +142,7 @@ impl ForteRenderTab {
                             if let Some(dialog) = &mut self.file_dialog {
                                 if dialog.show(ctx).selected() {
                                     if let Some(path) = dialog.path() {
+                                        state.ui_state.midi_select_last_path = Some(path.clone());
                                         if path.is_file() {
                                             if let Err(error) = self.midi_list.add_item(path.clone()) {
                                                 let title = if let Some(filen) = path.file_name() {
@@ -183,7 +184,7 @@ impl ForteRenderTab {
                                     }
                                 } else {
                                     if ui.add_enabled(!self.midi_list.is_empty(), egui::Button::new("Convert!").min_size(egui::Vec2::new(3.0 * rect.width() / 4.0 - ui.style().spacing.button_padding.x, 40.0))).clicked() {
-                                        let mut dialog = FileDialog::select_folder(None)
+                                        let mut dialog = FileDialog::select_folder(state.ui_state.output_select_last_path.clone())
                                             .resizable(true)
                                             .show_new_folder(false)
                                             .show_rename(false);
@@ -194,6 +195,7 @@ impl ForteRenderTab {
                                     if let Some(dialog) = &mut self.out_select_dialog {
                                         if dialog.show(ctx).selected() {
                                             if let Some(path) = dialog.path() {
+                                                state.ui_state.output_select_last_path = Some(path.clone());
                                                 if path.is_dir() {
                                                     state.ui_state.rendering = true;
                                                     state.render_settings.output_dir = Some(path);

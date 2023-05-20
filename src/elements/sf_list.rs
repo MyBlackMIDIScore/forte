@@ -1,6 +1,7 @@
 use crate::app::add_gui_error;
 use crate::elements::sf_cfg::SoundfontConfigWindow;
 use crate::errors::error_types::FileLoadError;
+use crate::settings::ForteState;
 use egui::{containers::scroll_area::ScrollArea, Context, Ui};
 use egui_extras::{Column, TableBuilder};
 use egui_file::FileDialog;
@@ -148,7 +149,7 @@ impl EguiSFList {
         self.list.clone().into_iter()
     }
 
-    pub fn show(&mut self, ui: &mut Ui, ctx: &Context) {
+    pub fn show(&mut self, ui: &mut Ui, ctx: &Context, state: &mut ForteState) {
         let events = ui.input(|i| i.events.clone());
         for event in &events {
             if let egui::Event::Key {
@@ -229,7 +230,7 @@ impl EguiSFList {
                     };
                     let filter = Box::new(filter);
 
-                    let mut dialog = FileDialog::open_file(None)
+                    let mut dialog = FileDialog::open_file(state.ui_state.sf_select_last_path.clone())
                     .resizable(true)
                     .show_new_folder(false)
                     .show_rename(false)
@@ -249,6 +250,7 @@ impl EguiSFList {
                 if let Some(dialog) = &mut self.file_dialog {
                     if dialog.show(ctx).selected() {
                         if let Some(path) = dialog.path() {
+                            state.ui_state.sf_select_last_path = Some(path.clone());
                             if path.is_file() {
                                 if let Err(error) = self.add_item(path.clone()) {
                                     let title = if let Some(filen) = path.file_name() {

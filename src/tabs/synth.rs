@@ -113,11 +113,11 @@ impl ForteSynthTab {
 
                 if state.synth_settings.sfcfg_type == SynthCfgType::Global {
                     render_in_frame(ui, |ui| {
-                        self.sf_global_list.show(ui, ctx);
+                        self.sf_global_list.show(ui, ctx, state);
                     });
                 } else {
                     render_in_frame(ui, |ui| {
-                        self.sf_split_lists[self.sf_split_selected].show(ui, ctx);
+                        self.sf_split_lists[self.sf_split_selected].show(ui, ctx, state);
                     });
                 }
             }
