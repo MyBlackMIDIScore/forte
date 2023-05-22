@@ -25,17 +25,31 @@ pub struct ForteAudioFileWriter {
 }
 
 impl ForteAudioFileWriter {
-    pub fn new(state: &ForteState, mut filename: String) -> Result<Self, MIDIRendererError> {
-        match state.render_settings.audio_format {
-            OutputAudioFormat::Pcm { .. } => filename.push_str(".wav"),
-            OutputAudioFormat::Vorbis { .. } => filename.push_str(".ogg"),
-            OutputAudioFormat::Lame { .. } => filename.push_str(".mp3"),
-        }
+    pub fn new(state: &ForteState, filename: String) -> Result<Self, MIDIRendererError> {
+        let extension = match state.render_settings.audio_format {
+            OutputAudioFormat::Pcm { .. } => "wav",
+            OutputAudioFormat::Vorbis { .. } => "ogg",
+            OutputAudioFormat::Lame { .. } => "mp3",
+        };
 
         let filepath = match state.render_settings.output_dir.clone() {
             Some(mut dir) => {
                 dir.push(filename);
-                dir
+                dir.set_extension(extension);
+
+                let mut counter = 1;
+                let mut filepath_new = dir.clone();
+                while filepath_new.exists() {
+                    let filename = dir.file_name().unwrap().to_str().unwrap();
+                    let len = filename.len() - extension.len() - 1;
+                    filepath_new = dir.with_file_name(
+                        filename[0..len].to_string()
+                            + format!(" ({counter}).").as_str()
+                            + extension,
+                    );
+                    counter += 1;
+                }
+                filepath_new
             }
             None => filename.into(),
         };
