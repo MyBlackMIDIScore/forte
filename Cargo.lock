@@ -3669,7 +3669,7 @@ checksum = "d2d7d3948613f75c98fd9328cfdcc45acc4d360655289d0a7d4ec931392200a3"
 [[package]]
 name = "xsynth-core"
 version = "0.1.0"
-source = "git+https://github.com/arduano/xsynth?rev=4192754#4192754f713dac1ad98c25db20499422a5dd5156"
+source = "git+https://github.com/arduano/xsynth?rev=a77e196#a77e196569461808c5f13019c314065a9e6b7b49"
 dependencies = [
  "atomic_refcell",
  "biquad",
@@ -3688,7 +3688,7 @@ dependencies = [
 [[package]]
 name = "xsynth-soundfonts"
 version = "0.1.0"
-source = "git+https://github.com/arduano/xsynth?rev=4192754#4192754f713dac1ad98c25db20499422a5dd5156"
+source = "git+https://github.com/arduano/xsynth?rev=a77e196#a77e196569461808c5f13019c314065a9e6b7b49"
 dependencies = [
  "encoding_rs",
  "encoding_rs_io",
