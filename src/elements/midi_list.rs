@@ -275,11 +275,23 @@ impl EguiMIDIList {
                                 if let Some(stats) = &self.stats {
                                     if let Some(Some(stats)) = stats.get(idx) {
                                         ui.horizontal(|ui| {
-                                            ui.add(
-                                                egui::widgets::ProgressBar::new(
-                                                    (stats.time / item.length) as f32,
+                                            let progress = (stats.time / item.length) as f32;
+
+                                            let color = ui.style().visuals.selection.bg_fill;
+                                            let color = if progress > 0.999 {
+                                                egui::Color32::from_rgb(
+                                                    color.r(),
+                                                    color.b(),
+                                                    color.g(),
                                                 )
-                                                .text(txt),
+                                            } else {
+                                                color
+                                            };
+
+                                            ui.add(
+                                                egui::widgets::ProgressBar::new(progress)
+                                                    .text(txt)
+                                                    .fill(color),
                                             )
                                             .on_hover_text(format!(
                                                 "Time: {} | Voice Count: {}",
