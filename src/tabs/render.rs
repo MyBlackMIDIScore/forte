@@ -50,7 +50,7 @@ impl ForteRenderTab {
                     ended = false;
                 } else if status == ManagerStatus::SFLoadError {
                     state.ui_state.rendering = false;
-                    mgr.cancel();
+                    mgr.cancel_all();
                     error!("Invalid Soundfont chain. Aborting render.");
                     add_gui_error(
                         "Soundfont Loader Error".to_owned(),
@@ -66,7 +66,7 @@ impl ForteRenderTab {
                 } else if status == ManagerStatus::RenderFinished && !mgr.spawn_next() {
                     info!("Conversion finished");
                     state.ui_state.rendering = false;
-                    mgr.cancel();
+                    mgr.cancel_all();
                 }
             }
         }
@@ -252,7 +252,17 @@ impl ForteRenderTab {
         info!("Aborting render per user request");
         state.ui_state.rendering = false;
         if let Some(mgr) = self.render_manager.as_mut() {
-            mgr.cancel();
+            mgr.cancel_all();
+        }
+    }
+
+    pub fn cancel_single_render(&mut self, state: &mut ForteState, id: usize) {
+        info!("Aborting render with ID {} per user request", id);
+        if let Some(mgr) = self.render_manager.as_mut() {
+            mgr.cancel(id);
+            if mgr.has_finished() {
+                state.ui_state.rendering = false;
+            }
         }
     }
 }

@@ -272,12 +272,9 @@ impl MIDIRenderer {
                 break;
             }
 
-            if batch.delta > 0.0 {
-                self.render_batch(batch.delta, update_stats);
-            }
+            self.render_batch(batch.delta, update_stats);
 
             for event in batch.iter_inner() {
-                (update_stats)(self.time, self.renderer.voice_count());
                 match event {
                     Event::NoteOn(e) => {
                         if !self.ignore_range.contains(&e.velocity) {
@@ -332,7 +329,6 @@ struct MIDIRendererContainer {
 pub struct MIDIPool {
     max_parallel: usize,
     containers: Vec<MIDIRendererContainer>,
-    is_rendering: bool,
 }
 
 impl MIDIPool {
@@ -376,20 +372,23 @@ impl MIDIPool {
         Ok(Self {
             max_parallel: state.render_settings.parallel_midis,
             containers,
-            is_rendering: false,
         })
     }
 
     pub fn run(&mut self) {
-        info!("Spawning {} renderers", self.max_parallel);
+        info!(
+            "Spawning {} renderers",
+            self.max_parallel.min(self.containers.len())
+        );
         for _ in 0..self.max_parallel {
             self.spawn_next();
         }
-        self.is_rendering = true;
     }
 
     pub fn spawn_next(&mut self) -> bool {
-        if self.get_active_len() < self.max_parallel {
+        let active = self.get_active_len();
+
+        if active < self.max_parallel && active < self.containers.len() {
             info!("Spawning the next renderer");
             for container in &self.containers {
                 if container.status.load(Ordering::Relaxed) == MIDIRendererStatus::Idle {
@@ -439,9 +438,7 @@ impl MIDIPool {
         }
 
         if status == MIDIRendererStatus::Error {
-            self.cancel();
-        } else if status == MIDIRendererStatus::Finished {
-            self.is_rendering = false;
+            self.cancel_all();
         }
 
         status
@@ -477,11 +474,15 @@ impl MIDIPool {
         self.status() == MIDIRendererStatus::Finished
     }
 
-    pub fn cancel(&mut self) {
+    pub fn cancel(&mut self, id: usize) {
+        self.containers[id].allow.store(false, Ordering::Relaxed);
+        self.containers.remove(id);
+    }
+
+    pub fn cancel_all(&mut self) {
         for container in &self.containers {
             container.allow.store(false, Ordering::Relaxed);
         }
-        self.is_rendering = false;
         self.containers.clear();
     }
 }

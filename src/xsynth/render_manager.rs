@@ -94,8 +94,15 @@ impl RenderThreadManager {
         self.midi_pool.has_finished()
     }
 
-    pub fn cancel(&mut self) {
+    pub fn cancel(&mut self, id: usize) {
+        self.midi_pool.cancel(id);
+        if self.midi_pool.has_finished() {
+            self.soundfont_pool.cancel();
+        }
+    }
+
+    pub fn cancel_all(&mut self) {
         self.soundfont_pool.cancel();
-        self.midi_pool.cancel();
+        self.midi_pool.cancel_all();
     }
 }
