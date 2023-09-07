@@ -68,7 +68,7 @@ pub fn show_about(ui: &mut Ui) {
             ui.end_row();
 
             ui.label("XSynth Version:");
-            ui.label("0.1.0 (Commit a77e196)");
+            ui.label("0.1.0 (Commit d4d20a4)");
             ui.end_row();
 
             ui.label("MIDI Toolkit Version:");

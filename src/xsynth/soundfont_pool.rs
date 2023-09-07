@@ -78,7 +78,7 @@ impl SoundfontPool {
         info!("Starting new soundfont thread manager");
         let mut workers = Vec::new();
 
-        for soundfont in soundfonts {
+        for soundfont in soundfonts.iter().filter(|s| s.enabled) {
             workers.push(SoundfontThread::load_new(
                 soundfont,
                 dest.clone(),
