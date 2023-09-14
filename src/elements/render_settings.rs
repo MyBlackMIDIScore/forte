@@ -34,7 +34,7 @@ pub fn show_render_settings(ui: &mut Ui, state: &mut ForteState) {
             });
             ui.end_row();
 
-            if mode_state != state.render_settings.render_mode.into() {
+            if mode_state != <RenderMode as Into<usize>>::into(state.render_settings.render_mode) {
                 match mode_state {
                     0 => state.render_settings.render_mode = RenderMode::Standard,
                     1 => state.render_settings.render_mode = RenderMode::RealtimeSimulation,

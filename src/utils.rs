@@ -1,4 +1,11 @@
+use crate::{app::add_update_message, VERSION};
 use egui::Ui;
+use reqwest::blocking::ClientBuilder;
+use std::{
+    collections::HashMap,
+    env::consts::{ARCH, OS},
+};
+use tracing::info;
 
 pub fn set_button_spacing(ui: &mut Ui) {
     ui.spacing_mut().button_padding = (6.0, 3.0).into();
@@ -36,4 +43,45 @@ where
         .rounding(5.0)
         .inner_margin(5.0)
         .show(ui, resp);
+}
+
+pub fn get_latest_version() -> String {
+    let current = crate::VERSION.to_owned();
+    let api_url = "https://api.github.com/repos/MyBlackMIDIScore/forte/releases/latest";
+
+    let version = if let Ok(client) = ClientBuilder::new().user_agent("ForteUpdate").build() {
+        if let Ok(data) = client.get(api_url).send() {
+            let txt = data.text().unwrap_or_default();
+            if let Ok(json) =
+                serde_json::from_str::<HashMap<String, serde_json::value::Value>>(&txt)
+            {
+                json["tag_name"].as_str().unwrap_or("").to_owned()
+            } else {
+                current
+            }
+        } else {
+            current
+        }
+    } else {
+        current
+    };
+    version
+}
+
+pub fn get_release_filename() -> String {
+    let ext = if OS == "windows" { ".exe" } else { "" };
+
+    format!("forte-{}-{}{}", OS, ARCH, ext)
+}
+
+pub fn check_for_updates() {
+    let latest = get_latest_version();
+    if latest != VERSION {
+        info!("New update found: {}", latest);
+        let url = format!(
+            "https://github.com/MyBlackMIDIScore/forte/releases/latest/download/{}",
+            get_release_filename()
+        );
+        add_update_message(latest, url)
+    }
 }

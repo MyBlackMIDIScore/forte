@@ -19,6 +19,7 @@ use tracing::{error, info};
 use tracing_subscriber::{fmt, layer::SubscriberExt};
 
 const ICON: &[u8; 92050] = include_bytes!("../assets/forte.png");
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn panic_hook(info: &PanicInfo) {
     error!("Forte has encountered an error and exited!");
