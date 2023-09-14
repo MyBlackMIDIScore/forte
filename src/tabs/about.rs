@@ -62,11 +62,6 @@ pub fn show_about(ui: &mut Ui) {
         .num_columns(2)
         .min_col_width(120.0)
         .show(ui, |ui| {
-            ui.label("Build Number:");
-            let build_num = String::from_utf8_lossy(include_bytes!("../../build.number"));
-            ui.label(&build_num.trim()[6..]);
-            ui.end_row();
-
             ui.label("XSynth Version:");
             ui.label("0.1.0 (Commit cc9bf4a)");
             ui.end_row();
