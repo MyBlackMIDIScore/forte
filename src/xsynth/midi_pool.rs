@@ -456,8 +456,9 @@ impl MIDIPool {
         let mut progress = Vec::new();
 
         for container in &self.containers {
-            let status = container.status.load(Ordering::Relaxed);
-            if status != MIDIRendererStatus::Idle {
+            let status = container.status.load(Ordering::Relaxed) != MIDIRendererStatus::Idle;
+            let allow = container.allow.load(Ordering::Relaxed);
+            if status && allow {
                 progress.push(Some(RenderStats {
                     time: container.stats.time.load(Ordering::Relaxed),
                     voice_count: container.stats.voices.load(Ordering::Relaxed),
@@ -476,7 +477,6 @@ impl MIDIPool {
 
     pub fn cancel(&mut self, id: usize) {
         self.containers[id].allow.store(false, Ordering::Relaxed);
-        self.containers.remove(id);
     }
 
     pub fn cancel_all(&mut self) {
