@@ -4,15 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-egui = "0.21.0"
-eframe = "0.21.3"
+egui = "0.22.0"
+eframe = "0.22.0"
 proc-macro2 = "1.0.50"
 midi-toolkit-rs = { git = "https://github.com/arduano/midi-toolkit-rs", rev = "cff22ac" }
 serde = "1.0.152"
-xsynth-core = { git = "https://github.com/arduano/xsynth", rev = "d4d20a4" }
-xsynth-soundfonts = { git = "https://github.com/arduano/xsynth", rev = "d4d20a4" }
-egui_extras = "0.21.0"
-egui_file = "0.8.0"
+xsynth-core = { git = "https://github.com/arduano/xsynth", rev = "cc9bf4a" }
+xsynth-soundfonts = { git = "https://github.com/arduano/xsynth", rev = "cc9bf4a" }
+egui_extras = "0.22.0"
+egui_file = "0.9.0"
 rand = "0.8.5"
 num-format = "0.4.4"
 crossbeam-channel = "0.5.6"
@@ -25,12 +25,12 @@ tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
 tracing-appender = "0.2.2"
 image = "0.24.5"
-open = "4.0.1"
+open = "5.0.0"
 toml = "0.7.3"
 dirs = "5.0.0"
 vorbis_rs = "0.3.0"
 mp3lame-encoder = "0.1.1"
-fundsp = "0.14.0"
+fundsp = "0.15.0"
 
 [profile.release]
 opt-level = 3
