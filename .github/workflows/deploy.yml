@@ -1,11 +1,8 @@
 # Stolen from arduano/wasabi
 
-name: Build
+name: Deploy
 
-on:
-  push:
-    tags:
-    - 'v*'
+on: workflow_dispatch
 
 jobs:
   build-linux:
