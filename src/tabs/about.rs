@@ -22,7 +22,7 @@ pub fn show_about(ui: &mut Ui) {
             ..Default::default()
         };
 
-        let title_text = "Forte v0.1.0b";
+        let title_text = "Forte v0.1.0";
         let title_galley =
             ui.painter()
                 .layout_no_wrap(title_text.to_owned(), titleid, egui::Color32::WHITE);
@@ -68,7 +68,7 @@ pub fn show_about(ui: &mut Ui) {
             ui.end_row();
 
             ui.label("XSynth Version:");
-            ui.label("0.1.0 (Commit d4d20a4)");
+            ui.label("0.1.0 (Commit cc9bf4a)");
             ui.end_row();
 
             ui.label("MIDI Toolkit Version:");
@@ -76,7 +76,7 @@ pub fn show_about(ui: &mut Ui) {
             ui.end_row();
 
             ui.label("Egui Version:");
-            ui.label("0.21");
+            ui.label("0.22");
             ui.end_row();
         });
 
