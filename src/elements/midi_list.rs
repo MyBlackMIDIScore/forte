@@ -2,7 +2,7 @@ use crate::app::add_gui_error;
 use crate::errors::error_types::FileLoadError;
 use crate::utils::{bytes_to_filesize_str, f64_to_time_str};
 use crate::xsynth::RenderStats;
-use egui::{containers::scroll_area::ScrollArea, Ui};
+use egui::{containers::scroll_area::ScrollArea, Context, Ui, Window};
 use egui_extras::{Column, TableBuilder};
 use midi_toolkit::{
     io::{MIDIFile, MIDILoadError},
@@ -20,6 +20,8 @@ pub struct ForteListItem {
     pub filesize: u64,
     pub length: f64,
     pub note_count: u64,
+    pub context_menu_visible: bool,
+    pub stats_visible: bool,
 }
 
 pub struct EguiMIDIList {
@@ -62,6 +64,8 @@ impl EguiMIDIList {
                             filesize,
                             length,
                             note_count: stats.note_count(),
+                            context_menu_visible: false,
+                            stats_visible: false,
                         };
                         self.list.push(item);
                         Ok(())
@@ -173,7 +177,9 @@ impl EguiMIDIList {
         out / (len as f32)
     }
 
-    pub fn show(&mut self, ui: &mut Ui) {
+    pub fn show(&mut self, ui: &mut Ui, ctx: &Context) -> Option<usize> {
+        let mut cancel_id = None;
+
         let events = ui.input(|i| i.events.clone());
 
         for event in &events {
@@ -199,7 +205,7 @@ impl EguiMIDIList {
         }
 
         if !ui.input(|i| i.raw.dropped_files.is_empty()) {
-            println!("files dropped");
+            info!("Files dropped");
 
             let dropped_files = ui.input(|i| {
                 i.raw
@@ -265,9 +271,9 @@ impl EguiMIDIList {
                                     "error"
                                 };
 
-                                let mut gen_selectable = || {
+                                let mut gen_selectable = |enabled: bool| {
                                     let selectable = egui::SelectableLabel::new(item.selected, txt);
-                                    if ui.add(selectable).clicked() {
+                                    if ui.add_enabled(enabled, selectable).clicked() {
                                         item.selected = !item.selected;
                                     }
                                 };
@@ -293,17 +299,42 @@ impl EguiMIDIList {
                                                     .text(txt)
                                                     .fill(color),
                                             )
-                                            .on_hover_text(format!(
-                                                "Time: {} | Voice Count: {}",
-                                                f64_to_time_str(stats.time),
-                                                stats.voice_count
-                                            ));
+                                            .context_menu(|ui| {
+                                                if ui.button("Show statistics").clicked() {
+                                                    item.stats_visible = true;
+                                                }
+                                                if ui.button("Cancel").clicked() {
+                                                    cancel_id = Some(idx);
+                                                }
+                                            });
+
+                                            Window::new(format!("Statistics: {}", txt))
+                                                .id(egui::Id::new(idx))
+                                                .open(&mut item.stats_visible)
+                                                .show(ctx, |ui| {
+                                                    egui::Grid::new("stats_grid")
+                                                        .num_columns(2)
+                                                        .show(ui, |ui| {
+                                                            ui.label("Render Time:");
+                                                            ui.monospace(format!(
+                                                                "{}",
+                                                                f64_to_time_str(stats.time)
+                                                            ));
+                                                            ui.end_row();
+                                                            ui.label("Voice Count:");
+                                                            ui.monospace(format!(
+                                                                "{}",
+                                                                stats.voice_count
+                                                            ));
+                                                            ui.end_row();
+                                                        });
+                                                });
                                         });
                                     } else {
-                                        gen_selectable();
+                                        gen_selectable(false);
                                     }
                                 } else {
-                                    gen_selectable();
+                                    gen_selectable(true);
                                 }
                             });
                             row.col(|ui| {
@@ -320,5 +351,7 @@ impl EguiMIDIList {
                 });
             ui.allocate_space(ui.available_size());
         });
+
+        cancel_id
     }
 }

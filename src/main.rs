@@ -15,17 +15,20 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::panic;
 use std::panic::PanicInfo;
-use tracing::info;
+use tracing::{error, info};
 use tracing_subscriber::{fmt, layer::SubscriberExt};
 
 const ICON: &[u8; 92050] = include_bytes!("../assets/forte.png");
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn panic_hook(info: &PanicInfo) {
+    error!("Forte has encountered an error and exited!");
     let backtrace = Backtrace::force_capture();
     let crash_text = format!("{info}\n\n{backtrace}");
 
     let mut file = File::create("forte-crash.txt").unwrap();
     file.write_all(crash_text.as_bytes()).unwrap_or_default();
+    open::that("forte-crash.txt").unwrap_or_default();
 }
 
 fn load_icon() -> eframe::IconData {

@@ -105,8 +105,7 @@ impl AudioWriter for LameFileWriter {
 
     fn finalize(mut self: Box<Self>) -> Result<(), MIDIRendererError> {
         info!("Finalizing LAME audio file");
-        let mut out = Vec::new();
-        out.reserve(mp3lame_encoder::max_required_buffer_size(1));
+        let mut out = Vec::with_capacity(mp3lame_encoder::max_required_buffer_size(1));
         let encoded_size = self
             .encoder
             .flush::<FlushNoGap>(out.spare_capacity_mut())

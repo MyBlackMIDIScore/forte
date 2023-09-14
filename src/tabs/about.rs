@@ -1,6 +1,5 @@
-use crate::{app::add_gui_error, ICON};
+use crate::{ICON, VERSION};
 use egui::Ui;
-use tracing::info;
 
 pub fn show_about(ui: &mut Ui) {
     ui.horizontal(|ui| {
@@ -22,7 +21,7 @@ pub fn show_about(ui: &mut Ui) {
             ..Default::default()
         };
 
-        let title_text = "Forte v0.1.0";
+        let title_text = format!("Forte v{}", VERSION);
         let title_galley =
             ui.painter()
                 .layout_no_wrap(title_text.to_owned(), titleid, egui::Color32::WHITE);
@@ -62,11 +61,6 @@ pub fn show_about(ui: &mut Ui) {
         .num_columns(2)
         .min_col_width(120.0)
         .show(ui, |ui| {
-            ui.label("Build Number:");
-            let build_num = String::from_utf8_lossy(include_bytes!("../../build.number"));
-            ui.label(&build_num.trim()[6..]);
-            ui.end_row();
-
             ui.label("XSynth Version:");
             ui.label("0.1.0 (Commit cc9bf4a)");
             ui.end_row();
@@ -80,13 +74,6 @@ pub fn show_about(ui: &mut Ui) {
             ui.end_row();
         });
 
-    let upd_text = "\u{1F5A5} Check for updates";
-    let upd_galley = ui.painter().layout_no_wrap(
-        upd_text.to_owned(),
-        egui::FontId::default(),
-        egui::Color32::WHITE,
-    );
-
     let gh_text = "\u{1F310} GitHub";
     let gh_galley = ui.painter().layout_no_wrap(
         gh_text.to_owned(),
@@ -96,25 +83,17 @@ pub fn show_about(ui: &mut Ui) {
 
     let mut h = ui.available_height();
 
-    let button_height = ui.spacing().button_padding.y * 2.0 + upd_galley.size().y;
+    let button_height = ui.spacing().button_padding.y * 2.0 + gh_galley.size().y;
     h -= button_height;
     ui.add_space(h);
 
     ui.horizontal(|ui| {
         let mut w = ui.available_width();
 
-        let button_width = gh_galley.size().x + upd_galley.size().x + ui.spacing().button_padding.x;
+        let button_width = gh_galley.size().x + ui.spacing().button_padding.x;
         w /= 2.0;
         w -= button_width / 2.0;
         ui.add_space(w);
-
-        if ui.button(upd_text).clicked() {
-            info!("No updates found");
-            add_gui_error(
-                "No Updates Found".to_owned(),
-                "Forte is all up to date!".to_owned(),
-            );
-        }
 
         if ui.button(gh_text).clicked() {
             open::that("https://github.com/MyBlackMIDIScore/forte").unwrap();

@@ -12,8 +12,6 @@ jobs:
         target:
           - name: x86_64-unknown-linux-gnu
             arch: x64
-          - name: aarch64-unknown-linux-gnu
-            arch: arm64
 
     steps:
       - name: Checkout repository
@@ -46,8 +44,6 @@ jobs:
         target:
           - name: x86_64-apple-darwin
             arch: x64
-          - name: aarch64-apple-darwin
-            arch: arm64
 
     steps:
       - name: Checkout repository
@@ -80,8 +76,6 @@ jobs:
         target:
           - name: x86_64-pc-windows-msvc
             arch: x64
-          - name: aarch64-pc-windows-msvc
-            arch: arm64
 
     steps:
       - name: Checkout repository

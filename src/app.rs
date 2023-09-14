@@ -1,13 +1,27 @@
-use crate::errors::error_message::ErrorMessage;
+use crate::elements::persistent_message::PersistentMessage;
 use crate::settings::ForteState;
 use crate::tabs::{show_about, ForteRenderTab, ForteSynthTab, ForteTab};
-use crate::utils::set_button_spacing;
+use crate::utils::{check_for_updates, set_button_spacing};
 use eframe::glow::Context;
 use std::time::Duration;
 
 use tracing::info;
 
-static mut GUI_ERRORS: Vec<ErrorMessage> = Vec::new();
+static mut GUI_MESSAGES: Vec<PersistentMessage> = Vec::new();
+
+pub fn add_gui_error(title: String, body: String) {
+    info!("Adding new GUI error message");
+    unsafe {
+        GUI_MESSAGES.push(PersistentMessage::error(title, body));
+    }
+}
+
+pub fn add_update_message(version: String, url: String) {
+    info!("Adding new GUI update message");
+    unsafe {
+        GUI_MESSAGES.push(PersistentMessage::update(version, url));
+    }
+}
 
 pub struct ForteApp {
     state: ForteState,
@@ -19,6 +33,7 @@ pub struct ForteApp {
 impl ForteApp {
     pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
         //Self::set_font(&cc.egui_ctx);
+        check_for_updates();
         let state = ForteState::load();
         Self {
             render_tab: ForteRenderTab::new(),
@@ -50,8 +65,8 @@ impl eframe::App for ForteApp {
         ctx.request_repaint_after(Duration::from_millis(20));
 
         unsafe {
-            GUI_ERRORS.retain(|er| er.is_visible());
-            for error in GUI_ERRORS.iter_mut() {
+            GUI_MESSAGES.retain(|er| er.is_visible());
+            for error in GUI_MESSAGES.iter_mut() {
                 error.show(ctx)
             }
         }
@@ -102,12 +117,5 @@ impl eframe::App for ForteApp {
     fn on_exit(&mut self, _gl: Option<&Context>) {
         self.render_tab.cancel_render(&mut self.state);
         self.state.save().unwrap_or(());
-    }
-}
-
-pub fn add_gui_error(title: String, body: String) {
-    info!("Adding new GUI error message");
-    unsafe {
-        GUI_ERRORS.push(ErrorMessage::new(title, body));
     }
 }
