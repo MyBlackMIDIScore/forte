@@ -55,7 +55,11 @@ pub fn get_latest_version() -> String {
             if let Ok(json) =
                 serde_json::from_str::<HashMap<String, serde_json::value::Value>>(&txt)
             {
-                json["tag_name"].as_str().unwrap_or("").to_owned()
+                if let Some(tag) = json.get("tag_name") {
+                    tag.as_str().unwrap_or("").to_owned()
+                } else {
+                    current
+                }
             } else {
                 current
             }
