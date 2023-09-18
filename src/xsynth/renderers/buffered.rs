@@ -34,14 +34,20 @@ impl ForteBufferedRenderer {
         let (output_sender, output_receiver) = crossbeam_channel::bounded::<Vec<f32>>(16);
 
         for _ in 0..instances {
-            for ch in state.synth_settings.unify() {
+            for (i, ch) in state.synth_settings.unify().into_iter().enumerate() {
                 let pool = if ch.use_threadpool {
                     Some(Arc::new(rayon::ThreadPoolBuilder::new().build().unwrap()))
                 } else {
                     None
                 };
 
-                let mut channel = VoiceChannel::new(ch.channel_init_options, audio_params, pool);
+                let mut options = ch.channel_init_options;
+                if i == 9 {
+                    options.drums_only = true;
+                }
+
+                let mut channel = VoiceChannel::new(options, audio_params, pool);
+
                 let stats = channel.get_channel_stats();
                 channel_stats.push(stats);
 
@@ -121,7 +127,7 @@ impl Renderer for ForteBufferedRenderer {
                     .unwrap_or_default();
             }
             SynthEvent::AllChannels(event) => {
-                for sender in self.senders.iter_mut() {
+                for sender in self.senders.iter() {
                     sender
                         .send(ChannelEvent::Audio(event.clone()))
                         .unwrap_or_default();

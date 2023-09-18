@@ -307,6 +307,12 @@ impl MIDIRenderer {
                             )),
                         ));
                     }
+                    Event::ProgramChange(e) => {
+                        self.renderer.send_event(SynthEvent::Channel(
+                            e.channel as u32,
+                            ChannelAudioEvent::ProgramChange(e.program),
+                        ));
+                    }
                     _ => {}
                 }
             }

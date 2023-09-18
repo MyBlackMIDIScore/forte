@@ -31,15 +31,20 @@ impl ForteStandardRenderer {
         );
 
         for _ in 0..instances {
-            for ch in state.synth_settings.unify() {
+            for (i, ch) in state.synth_settings.unify().into_iter().enumerate() {
                 let pool = if ch.use_threadpool {
                     Some(Arc::new(rayon::ThreadPoolBuilder::new().build().unwrap()))
                 } else {
                     None
                 };
 
+                let mut options = ch.channel_init_options;
+                if i == 9 {
+                    options.drums_only = true;
+                }
+
                 channels.push(VoiceChannel::new(
-                    ch.channel_init_options,
+                    options,
                     audio_params,
                     pool.clone(),
                 ));

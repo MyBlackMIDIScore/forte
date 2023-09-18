@@ -35,7 +35,7 @@ impl SoundfontThread {
         thread::spawn(move || {
             info!("Loading new soundfont: {:?}", soundfont.path);
             let sf =
-                SampleSoundfont::new(soundfont.path.clone(), audio_params, soundfont.pref.init);
+                SampleSoundfont::new(soundfont.path.clone(), audio_params, soundfont.init);
             match sf {
                 Ok(sf) => {
                     if allowc.load(Ordering::Relaxed) {
