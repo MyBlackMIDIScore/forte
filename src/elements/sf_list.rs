@@ -86,6 +86,8 @@ impl EguiSFList {
                             format: SFFormat::Sfz,
                             path,
                             init: SoundfontInitOptions {
+                                bank: Some(0),
+                                preset: Some(0),
                                 interpolator: Interpolator::Linear,
                                 ..Default::default()
                             },
@@ -167,8 +169,6 @@ impl EguiSFList {
         }
 
         if !ui.input(|i| i.raw.dropped_files.is_empty()) {
-            println!("files dropped");
-
             let dropped_files = ui.input(|i| {
                 i.raw
                     .dropped_files

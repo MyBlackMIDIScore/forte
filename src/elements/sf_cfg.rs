@@ -1,4 +1,4 @@
-use crate::elements::sf_list::ForteSFListItem;
+use crate::elements::sf_list::{ForteSFListItem, SFFormat};
 use egui::{Context, Window};
 use xsynth_core::soundfont::Interpolator;
 
@@ -39,7 +39,8 @@ impl SoundfontConfigWindow {
                         let mut modify = item.init.bank.is_some();
 
                         ui.label("Override Instrument: ");
-                        ui.checkbox(&mut modify, "");
+                        let allow_override = !(item.format == SFFormat::Sfz);
+                        ui.add_enabled(allow_override, egui::Checkbox::without_text(&mut modify));
                         ui.end_row();
 
                         if modify && item.init.bank.is_none() {
