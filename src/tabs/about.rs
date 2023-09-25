@@ -63,11 +63,11 @@ pub fn show_about(ui: &mut Ui) {
         .min_col_width(120.0)
         .show(ui, |ui| {
             ui.label("Operating System:");
-            ui.label(format!("{}", OS));
+            ui.label(OS.to_string());
             ui.end_row();
 
             ui.label("Architecture:");
-            ui.label(format!("{}", ARCH));
+            ui.label(ARCH.to_string());
             ui.end_row();
 
             ui.label("XSynth Version:");

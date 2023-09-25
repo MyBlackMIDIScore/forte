@@ -316,10 +316,7 @@ impl EguiMIDIList {
                                                         .num_columns(2)
                                                         .show(ui, |ui| {
                                                             ui.label("Render Time:");
-                                                            ui.monospace(format!(
-                                                                "{}",
-                                                                f64_to_time_str(stats.time)
-                                                            ));
+                                                            ui.monospace(f64_to_time_str(stats.time).to_string());
                                                             ui.end_row();
                                                             ui.label("Voice Count:");
                                                             ui.monospace(format!(

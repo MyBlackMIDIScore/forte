@@ -345,7 +345,7 @@ impl EguiSFList {
                                 "None".to_owned()
                             };
                             row.col(|ui| {
-                                ui.label(format!("{}", bank_txt));
+                                ui.label(bank_txt.to_string());
                             });
 
                             let preset_txt = if let Some(preset) = item.init.preset {
@@ -354,7 +354,7 @@ impl EguiSFList {
                                 "None".to_owned()
                             };
                             row.col(|ui| {
-                                ui.label(format!("{}", preset_txt));
+                                ui.label(preset_txt.to_string());
                             });
                         });
                     }
