@@ -101,7 +101,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: "forte-windows-${{ matrix.target.arch }}.exe"
+          name: "forte-windows-${{ matrix.target.arch }}"
           path: "target/${{ matrix.target.name }}/release/forte.exe"
 
   create-release:

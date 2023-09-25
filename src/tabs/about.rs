@@ -1,5 +1,6 @@
 use crate::{ICON, VERSION};
 use egui::Ui;
+use std::env::consts::{ARCH, OS};
 
 pub fn show_about(ui: &mut Ui) {
     ui.horizontal(|ui| {
@@ -61,6 +62,14 @@ pub fn show_about(ui: &mut Ui) {
         .num_columns(2)
         .min_col_width(120.0)
         .show(ui, |ui| {
+            ui.label("Operating System:");
+            ui.label(OS.to_string());
+            ui.end_row();
+
+            ui.label("Architecture:");
+            ui.label(ARCH.to_string());
+            ui.end_row();
+
             ui.label("XSynth Version:");
             ui.label("0.1.0 (Commit cc9bf4a)");
             ui.end_row();

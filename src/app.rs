@@ -16,10 +16,10 @@ pub fn add_gui_error(title: String, body: String) {
     }
 }
 
-pub fn add_update_message(version: String, url: String) {
+pub fn add_update_message(version: String, url: String, body: String) {
     info!("Adding new GUI update message");
     unsafe {
-        GUI_MESSAGES.push(PersistentMessage::update(version, url));
+        GUI_MESSAGES.push(PersistentMessage::update(version, url, body));
     }
 }
 

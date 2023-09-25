@@ -12,8 +12,9 @@ use tracing::{info, warn};
 use xsynth_core::soundfont::{Interpolator, SoundfontInitOptions};
 use xsynth_soundfonts::sfz::parse::parse_tokens_resolved;
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SFFormat {
+    #[default]
     Sfz,
 }
 
@@ -27,28 +28,24 @@ pub enum InterpolatorDef {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(remote = "SoundfontInitOptions")]
 pub struct SoundfontInitOptionsDef {
+    pub bank: Option<u8>,
+    pub preset: Option<u8>,
     pub linear_release: bool,
     pub use_effects: bool,
     #[serde(with = "InterpolatorDef")]
     pub interpolator: Interpolator,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
-pub struct SFPref {
-    #[serde(with = "SoundfontInitOptionsDef")]
-    pub init: SoundfontInitOptions,
-    pub bank: u8,
-    pub preset: u8,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Default, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct ForteSFListItem {
     pub id: usize,
     pub enabled: bool,
     pub selected: bool,
     pub format: SFFormat,
     pub path: PathBuf,
-    pub pref: SFPref,
+    #[serde(with = "SoundfontInitOptionsDef")]
+    pub init: SoundfontInitOptions,
 }
 
 pub struct EguiSFList {
@@ -88,13 +85,11 @@ impl EguiSFList {
                             selected: false,
                             format: SFFormat::Sfz,
                             path,
-                            pref: SFPref {
-                                init: SoundfontInitOptions {
-                                    interpolator: Interpolator::Linear,
-                                    ..Default::default()
-                                },
-                                bank: 0,
-                                preset: 0,
+                            init: SoundfontInitOptions {
+                                bank: Some(0),
+                                preset: Some(0),
+                                interpolator: Interpolator::Linear,
+                                ..Default::default()
                             },
                         };
                         self.list.push(item);
@@ -174,8 +169,6 @@ impl EguiSFList {
         }
 
         if !ui.input(|i| i.raw.dropped_files.is_empty()) {
-            println!("files dropped");
-
             let dropped_files = ui.input(|i| {
                 i.raw
                     .dropped_files
@@ -345,11 +338,23 @@ impl EguiSFList {
                                     SFFormat::Sfz => "SFZ",
                                 });
                             });
+
+                            let bank_txt = if let Some(bank) = item.init.bank {
+                                format!("{}", bank)
+                            } else {
+                                "None".to_owned()
+                            };
                             row.col(|ui| {
-                                ui.label(format!("{}", item.pref.bank));
+                                ui.label(bank_txt.to_string());
                             });
+
+                            let preset_txt = if let Some(preset) = item.init.preset {
+                                format!("{}", preset)
+                            } else {
+                                "None".to_owned()
+                            };
                             row.col(|ui| {
-                                ui.label(format!("{}", item.pref.preset));
+                                ui.label(preset_txt.to_string());
                             });
                         });
                     }

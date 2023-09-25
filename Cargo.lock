@@ -1144,7 +1144,7 @@ dependencies = [
 
 [[package]]
 name = "forte"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "atomic",
  "atomic_float",
@@ -4222,7 +4222,7 @@ checksum = "1eee6bf5926be7cf998d7381a9a23d833fd493f6a8034658a9505a4dc4b20444"
 [[package]]
 name = "xsynth-core"
 version = "0.1.0"
-source = "git+https://github.com/arduano/xsynth?rev=cc9bf4a#cc9bf4a013a94ec29171a4aacda510a4860fde08"
+source = "git+https://github.com/arduano/xsynth?rev=fb8f272#fb8f272edf099b97f52b1dfcfd48ad760c0ea902"
 dependencies = [
  "atomic_refcell",
  "biquad",
@@ -4242,7 +4242,7 @@ dependencies = [
 [[package]]
 name = "xsynth-soundfonts"
 version = "0.1.0"
-source = "git+https://github.com/arduano/xsynth?rev=cc9bf4a#cc9bf4a013a94ec29171a4aacda510a4860fde08"
+source = "git+https://github.com/arduano/xsynth?rev=fb8f272#fb8f272edf099b97f52b1dfcfd48ad760c0ea902"
 dependencies = [
  "encoding_rs",
  "encoding_rs_io",

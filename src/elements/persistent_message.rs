@@ -13,6 +13,7 @@ pub struct PersistentMessage {
     id: usize,
     string1: String,
     string2: String,
+    string3: String,
     is_visible: bool,
 }
 
@@ -23,16 +24,18 @@ impl PersistentMessage {
             id: rand::random(),
             string1: title,
             string2: body,
+            string3: String::new(),
             is_visible: true,
         }
     }
 
-    pub fn update(version: String, url: String) -> Self {
+    pub fn update(version: String, url: String, body: String) -> Self {
         Self {
             msg_type: MessageType::Update,
             id: rand::random(),
             string1: version,
             string2: url,
+            string3: body,
             is_visible: true,
         }
     }
@@ -69,6 +72,8 @@ impl PersistentMessage {
                                 "A new version of Forte is available: {}",
                                 &self.string1
                             ));
+                            ui.separator();
+                            ui.label(&self.string3);
                             ui.separator();
                             if ui.button("Download").clicked() {
                                 open::that(&self.string2).unwrap_or_default();

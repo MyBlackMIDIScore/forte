@@ -28,12 +28,14 @@ impl From<RenderMode> for usize {
 #[serde(remote = "ChannelInitOptions", default)]
 pub struct ChannelInitOptionsDef {
     pub fade_out_killing: bool,
+    pub drums_only: bool,
 }
 
 impl Default for ChannelInitOptionsDef {
     fn default() -> Self {
         Self {
             fade_out_killing: true,
+            drums_only: false,
         }
     }
 }
@@ -53,6 +55,7 @@ impl Default for SingleChannelSettings {
     fn default() -> Self {
         let channel_init_options = ChannelInitOptions {
             fade_out_killing: true,
+            drums_only: false,
         };
 
         Self {
