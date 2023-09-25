@@ -11,7 +11,7 @@ mod writer;
 mod xsynth;
 
 use std::backtrace::Backtrace;
-use std::fs::File;
+use std::fs::{File, remove_file};
 use std::io::prelude::*;
 use std::panic;
 use std::panic::PanicInfo;
@@ -50,7 +50,11 @@ fn load_icon() -> eframe::IconData {
 fn main() {
     panic::set_hook(Box::new(panic_hook));
 
-    let file_appender = tracing_appender::rolling::hourly("", "forte.log");
+    let log_dir = dirs::cache_dir().unwrap_or_default();
+    let mut log_path = log_dir.clone();
+    log_path.push("forte.log");
+    remove_file(log_path).unwrap_or_default();
+    let file_appender = tracing_appender::rolling::never(&log_dir, "forte.log");
     let (file_writer, _guard) = tracing_appender::non_blocking(file_appender);
     tracing::subscriber::set_global_default(
         fmt::Subscriber::builder()
