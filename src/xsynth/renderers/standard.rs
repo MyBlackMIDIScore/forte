@@ -43,11 +43,7 @@ impl ForteStandardRenderer {
                     options.drums_only = true;
                 }
 
-                channels.push(VoiceChannel::new(
-                    options,
-                    audio_params,
-                    pool.clone(),
-                ));
+                channels.push(VoiceChannel::new(options, audio_params, pool.clone()));
                 channel_events_cache.push(Vec::new());
                 sample_cache_vecs.push(Vec::new());
             }

@@ -1,12 +1,12 @@
 use crate::{app::add_update_message, VERSION};
 use egui::Ui;
 use reqwest::blocking::ClientBuilder;
+use serde_json::Value;
 use std::{
     collections::HashMap,
     env::consts::{ARCH, OS},
 };
 use tracing::info;
-use serde_json::Value;
 
 pub fn set_button_spacing(ui: &mut Ui) {
     ui.spacing_mut().button_padding = (6.0, 3.0).into();

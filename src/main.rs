@@ -11,7 +11,7 @@ mod writer;
 mod xsynth;
 
 use std::backtrace::Backtrace;
-use std::fs::{File, remove_file};
+use std::fs::{remove_file, File};
 use std::io::prelude::*;
 use std::panic;
 use std::panic::PanicInfo;

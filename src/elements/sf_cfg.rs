@@ -54,7 +54,8 @@ impl SoundfontConfigWindow {
                         let mut bank = item.init.bank.unwrap_or(0);
 
                         ui.label("Bank: ");
-                        ui.add_enabled(modify,
+                        ui.add_enabled(
+                            modify,
                             egui::DragValue::new(&mut bank)
                                 .speed(1)
                                 .clamp_range(0..=128),
@@ -68,7 +69,8 @@ impl SoundfontConfigWindow {
                         let mut preset = item.init.preset.unwrap_or(0);
 
                         ui.label("Preset: ");
-                        ui.add_enabled(modify,
+                        ui.add_enabled(
+                            modify,
                             egui::DragValue::new(&mut preset)
                                 .speed(1)
                                 .clamp_range(0..=127),

@@ -28,7 +28,7 @@ impl From<RenderMode> for usize {
 #[serde(remote = "ChannelInitOptions", default)]
 pub struct ChannelInitOptionsDef {
     pub fade_out_killing: bool,
-    pub drums_only: bool
+    pub drums_only: bool,
 }
 
 impl Default for ChannelInitOptionsDef {
