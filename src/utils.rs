@@ -6,6 +6,7 @@ use std::{
     env::consts::{ARCH, OS},
 };
 use tracing::info;
+use serde_json::Value;
 
 pub fn set_button_spacing(ui: &mut Ui) {
     ui.spacing_mut().button_padding = (6.0, 3.0).into();
@@ -45,31 +46,41 @@ where
         .show(ui, resp);
 }
 
-pub fn get_latest_version() -> String {
-    let current = crate::VERSION.to_owned();
+pub fn get_latest_release_data() -> Result<HashMap<String, Value>, ()> {
     let api_url = "https://api.github.com/repos/MyBlackMIDIScore/forte/releases/latest";
 
-    let version = if let Ok(client) = ClientBuilder::new().user_agent("ForteUpdate").build() {
+    if let Ok(client) = ClientBuilder::new().user_agent("ForteUpdate").build() {
         if let Ok(data) = client.get(api_url).send() {
             let txt = data.text().unwrap_or_default();
-            if let Ok(json) =
-                serde_json::from_str::<HashMap<String, serde_json::value::Value>>(&txt)
-            {
-                if let Some(tag) = json.get("tag_name") {
-                    tag.as_str().unwrap_or("").to_owned()
-                } else {
-                    current
-                }
+            if let Ok(json) = serde_json::from_str::<HashMap<String, Value>>(&txt) {
+                Ok(json)
             } else {
-                current
+                Err(())
             }
         } else {
-            current
+            Err(())
         }
     } else {
+        Err(())
+    }
+}
+
+pub fn get_latest_version(data: &HashMap<String, Value>) -> String {
+    let current = crate::VERSION.to_owned();
+
+    if let Some(tag) = data.get("tag_name") {
+        tag.as_str().unwrap_or(&current).to_owned()
+    } else {
         current
-    };
-    version
+    }
+}
+
+pub fn get_release_body(data: &HashMap<String, Value>) -> String {
+    if let Some(body) = data.get("body") {
+        body.as_str().unwrap_or("").to_owned()
+    } else {
+        String::new()
+    }
 }
 
 pub fn get_release_filename() -> String {
@@ -79,13 +90,17 @@ pub fn get_release_filename() -> String {
 }
 
 pub fn check_for_updates() {
-    let latest = get_latest_version();
+    let data = get_latest_release_data().unwrap_or_default();
+
+    let latest = get_latest_version(&data);
     if latest != VERSION {
         info!("New update found: {}", latest);
+
+        let body = get_release_body(&data);
         let url = format!(
             "https://github.com/MyBlackMIDIScore/forte/releases/latest/download/{}",
             get_release_filename()
         );
-        add_update_message(latest, url)
+        add_update_message(latest, url, body)
     }
 }
